@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5555,
+            "driver": "MariaDB",
+            "name": "BachelorThesisDB ",
+            "database": "abc",
+            "username": "root"
+        }
+    ]
+}
