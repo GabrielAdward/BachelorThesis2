@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const PORT = 8080;
 
-const storeModel = require('./src/models/storeModel.js');
+const storeModel = require('./src/app.js');
 const model = new storeModel();
 
 
