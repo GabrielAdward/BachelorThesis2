@@ -1,8 +1,12 @@
-module.exports = {
-  purge: ['./src/**/*.svelte'],
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
-    extend: {},
+    extend: {
+      spacing: {
+        '2.5': '0.625rem', 
+      },
+    },
   },
-  variants: {},
   plugins: [],
 }
