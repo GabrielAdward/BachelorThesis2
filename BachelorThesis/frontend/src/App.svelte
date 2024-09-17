@@ -1,16 +1,25 @@
 <script>
+  import Navbar from './components/Navbar.svelte';
+  import Footer from './components/Footer.svelte';
+  import Home from "./routes/Home.svelte";
+  import About from "./routes/About.svelte"
+  import { Router, Link, Route } from "svelte-routing";
 
-	import Navbar from './components/Navbar.svelte';
-	import Footer from './components/Footer.svelte';
-	import Home from './routes/Home.svelte';
-  </script>
-  
-  <Navbar />
+
+
+</script>
+
+
+
+
+
+
+
+<Router>
+  <Navbar/>
   <main class="min-h-screen bg-blue-950">
-	<!-- Only apply bg-blue-950 to the parent container -->
-	<Home  />
+    <Route path="/" component={Home} />  
+    <Route path="/about" component={About} />
   </main>
-  <Footer />
-  
-
-  
+  <Footer/>
+</Router>
