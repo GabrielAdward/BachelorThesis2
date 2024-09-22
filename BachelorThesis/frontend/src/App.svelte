@@ -10,12 +10,6 @@
 
 </script>
 
-
-
-
-
-
-
 <Router>
   <Navbar/>
   <main class="min-h-screen bg-blue-950">
