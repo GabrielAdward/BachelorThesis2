@@ -5,6 +5,9 @@
   let selectedOption = null;
   let question = "";
   let csvData = []; // Store CSV data
+  let filteredData = []; // Data filtered based on selected district
+  let districts = []; // Store unique district names
+  let selectedDistrict = "Show All"; // Default selected district
   let fileUploaded = false;
   let errors = {};
   let fileName = ''; // Track the uploaded file name
@@ -12,7 +15,7 @@
   // Short explanation for each step
   const stepDescriptions = {
     1: "Please write your question for investigation in this step.",
-    2: "Upload a CSV file that contains the relevant data.",
+    2: "Upload a CSV file that contains the relevant data or filter existing data.",
     3: "Select the tool you want to use to analyze the data.",
     4: "View the result of your data analysis."
   };
@@ -35,7 +38,7 @@
       errors.question = "Question is required!";
       return false;
     }
-    if (currentStep === 2 && !fileUploaded) {
+    if (currentStep === 2 && !fileUploaded && csvData.length === 0) {
       errors.file = "You need to upload a file!";
       return false;
     }
@@ -48,6 +51,8 @@
 
   // Handle CSV File Upload
   const handleFileUpload = async (event) => {
+    resetFileState(); // Clear previous file data
+
     const file = event.target.files[0];
     fileName = file.name;
 
@@ -56,36 +61,66 @@
       return;
     }
 
-    // Simulate a backend call
     const reader = new FileReader();
     reader.onload = () => {
       const text = reader.result;
       parseCSV(text); // Parse the CSV data
+      updateFilteredData();
+      fileUploaded = true;
     };
     reader.readAsText(file);
   };
 
   // Function to parse CSV data
   const parseCSV = (data) => {
-    const rows = data.split("\n").filter(row => row.length > 0);
+    const rows = data.split("\n").filter((row) => row.length > 0);
     const keys = rows[0].split(",");
-    const values = rows.slice(1).map(row => {
+    const values = rows.slice(1).map((row) => {
       const rowValues = row.split(",");
       let rowObj = {};
       keys.forEach((key, index) => {
-        rowObj[key] = rowValues[index];
+        rowObj[key.trim()] = rowValues[index]?.trim(); // Trim values to avoid leading/trailing spaces
       });
       return rowObj;
     });
     csvData = values;
-    fileUploaded = true;
+
+    // Extract unique districts (excluding any empty or "Null" values)
+    if (fileName === "Test.csv") {
+      districts = [...new Set(csvData.map((row) => row.District).filter(district => district && district.toLowerCase() !== "null"))];
+    } else {
+      districts = []; // If the file name is not "Test.csv", do not display the buttons
+    }
+  };
+
+  // Update the filtered data based on selected district
+  const updateFilteredData = () => {
+    if (selectedDistrict === "Show All") {
+      filteredData = csvData;
+    } else {
+      filteredData = csvData.filter((row) => row.District === selectedDistrict);
+    }
+  };
+
+  // Function to handle district selection
+  const selectDistrict = (district) => {
+    selectedDistrict = district;
+    updateFilteredData();
+  };
+
+  // Reset the file state
+  const resetFileState = () => {
+    fileName = '';
+    csvData = [];
+    filteredData = [];
+    fileUploaded = false;
+    districts = [];
+    selectedDistrict = "Show All"; // Reset the selected district to "Show All"
   };
 
   // Cancel CSV upload
   const cancelFileUpload = () => {
-    fileName = '';
-    csvData = [];
-    fileUploaded = false;
+    resetFileState();
   };
 </script>
 
@@ -95,7 +130,15 @@
     <!-- Step Indicator -->
     <ul class="step-indicator flex justify-between mb-6 md:mb-10">
       {#each [1, 2, 3, 4] as step}
-        <li class={`flex-1 text-center p-2 border ${currentStep === step ? 'bg-orange-500 text-white' : currentStep > step ? 'bg-green-500 text-white' : 'bg-gray-300'}`}>
+        <li
+          class={`flex-1 text-center p-2 border ${
+            currentStep === step
+              ? "bg-orange-500 text-white"
+              : currentStep > step
+              ? "bg-green-500 text-white"
+              : "bg-gray-300"
+          }`}
+        >
           Step {step}
         </li>
       {/each}
@@ -106,7 +149,12 @@
       <!-- Step 1: Enter Question -->
       <div class="step-content">
         <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 1: Write a Question</h2>
-        <input type="text" class="w-full p-2 border mb-4" placeholder="Enter your question here" bind:value={question} />
+        <input
+          type="text"
+          class="w-full p-2 border mb-4"
+          placeholder="Enter your question here"
+          bind:value={question}
+        />
         {#if errors.question}
           <p class="text-red-500 text-sm">{errors.question}</p>
         {/if}
@@ -114,9 +162,11 @@
     {/if}
 
     {#if currentStep === 2}
-      <!-- Step 2: Upload CSV File -->
+      <!-- Step 2: View and Filter CSV Data -->
       <div class="step-content">
-        <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 2: Upload CSV File</h2>
+        <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 2: Uploaded CSV File</h2>
+
+        <!-- File Upload Input -->
         {#if !fileUploaded}
           <input type="file" accept=".csv" on:change={handleFileUpload} />
           {#if fileName}
@@ -127,10 +177,37 @@
           {/if}
         {/if}
 
-        <!-- Show the table with uploaded data if file is uploaded -->
+        <!-- District Selection Buttons -->
+        {#if fileUploaded && fileName === "Test.csv"}
+          <div class="district-buttons flex flex-wrap gap-2 mt-4">
+            <button
+              class={`district-button ${
+                selectedDistrict === "Show All"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300 text-black"
+              } p-2 rounded transition-colors duration-300`}
+              on:click={() => selectDistrict("Show All")}
+            >
+              Show All
+            </button>
+            {#each districts as district}
+              <button
+                class={`district-button ${
+                  selectedDistrict === district
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-300 text-black"
+                } p-2 rounded transition-colors duration-300`}
+                on:click={() => selectDistrict(district)}
+              >
+                {district}
+              </button>
+            {/each}
+          </div>
+        {/if}
+
+        <!-- Show the table with uploaded data -->
         {#if fileUploaded}
           <div class="table-container">
-            <h3 class="mt-4 text-lg">Uploaded Data:</h3>
             <div class="scrollable-table">
               <table class="csv-table">
                 <thead>
@@ -141,7 +218,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {#each csvData as row}
+                  {#each filteredData as row}
                     <tr>
                       {#each Object.values(row) as value}
                         <td>{value}</td>
@@ -152,8 +229,10 @@
               </table>
             </div>
           </div>
+        {/if}
 
-          <!-- Cancel Button to clear uploaded data -->
+        <!-- Cancel Button to clear uploaded data -->
+        {#if fileUploaded}
           <button class="cancel-button bg-red-500 text-white py-2 px-4 rounded mt-4" on:click={cancelFileUpload}>
             Cancel Upload
           </button>
@@ -167,7 +246,12 @@
         <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 3: Choose an Option</h2>
         <div class="flex flex-wrap gap-2 md:gap-4">
           {#each [1, 2, 3, 4] as option}
-            <div class={`option-box p-4 border rounded cursor-pointer ${selectedOption === option ? 'bg-green-500 text-white' : 'bg-gray-300'}`} on:click={() => selectOption(option)}>
+            <div
+              class={`option-box p-4 border rounded cursor-pointer ${
+                selectedOption === option ? "bg-green-500 text-white" : "bg-gray-300"
+              }`}
+              on:click={() => selectOption(option)}
+            >
               Option {option}
             </div>
           {/each}
@@ -180,7 +264,7 @@
       <div class="step-content">
         <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 4: The result is displayed!</h2>
         <div class="result-box p-4 border rounded">
-          Your selected option: {selectedOption || 'None selected'}
+          Your selected option: {selectedOption || "None selected"}
         </div>
       </div>
     {/if}
@@ -205,121 +289,127 @@
   </div>
 </div>
 
+
+
+
+
+
+
+
 <style>
-/* Full-screen centered form container with background */
-.form-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 20px; /* Added padding to ensure space on mobile */
-}
+  /* Full-screen centered form container with background */
+  .form-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
 
-/* Form box responsiveness */
-.form-box {
-  width: 100%; /* Full width on mobile */
-  max-width: 800px; /* Limit max width on large screens */
-  height: auto; /* Allow height to adjust automatically */
-  background-color: #f0f4f8;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-/* Responsive typography */
-h2 {
-  font-size: 1.25rem;
-}
-
-/* Step indicator styling */
-.step-indicator {
-  display: flex;
-  justify-content: space-between;
-  gap: 5px;
-  flex-wrap: wrap; /* Wrap steps on smaller screens */
-}
-
-/* Explanation styling */
-.step-explanation {
-  margin-top: 20px;
-}
-
-/* Option box hover effect */
-.option-box {
-  flex: 1 1 45%; /* Allow two options per row on mobile */
-}
-.option-box:hover {
-  transform: scale(1.05);
-}
-
-/* Result box styling */
-.result-box {
-  font-size: 1.25rem;
-  font-weight: bold;
-}
-
-/* Right-aligned buttons */
-.button-group {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-/* New: Add scrollable table styling */
-.table-container {
-  max-height: 300px; /* Set max height for table container */
-  overflow-y: auto; /* Enable vertical scrolling */
-  border: 1px solid #ddd; /* Add border around the table */
-  margin-top: 20px; /* Add space between table and other elements */
-}
-
-.csv-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.csv-table th, .csv-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-.csv-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-/* Cancel button for CSV upload */
-.cancel-button {
-  display: inline-block;
-  background-color: #ff6b6b;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.cancel-button:hover {
-  background-color: #ff4c4c;
-}
-
-/* Adjust form padding on smaller screens */
-@media (max-width: 640px) {
+  /* Form box responsiveness */
   .form-box {
-    padding: 15px;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    background-color: #f0f4f8;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
-  .option-box {
-    flex: 1 1 100%; /* Full width option boxes on smaller screens */
+  /* Responsive typography */
+  h2 {
+    font-size: 1.25rem;
   }
 
+  /* Step indicator styling */
   .step-indicator {
-    flex-direction: column; /* Stack the steps vertically on small screens */
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    flex-wrap: wrap;
   }
-}
 
+  /* Explanation styling */
+  .step-explanation {
+    margin-top: 20px;
+  }
+
+  /* Option box hover effect */
+  .option-box {
+    flex: 1 1 45%;
+  }
+  .option-box:hover {
+    transform: scale(1.05);
+  }
+
+  /* Result box styling */
+  .result-box {
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+
+  /* Right-aligned buttons */
+  .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* Add scrollable table styling */
+  .table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    margin-top: 20px;
+  }
+
+  .csv-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .csv-table th,
+  .csv-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+
+  .csv-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+
+  /* District buttons styling */
+  .district-buttons {
+    margin-bottom: 15px;
+  }
+
+  .district-button {
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .district-button:hover {
+    background-color: #2c7edb;
+    color: white;
+  }
+
+  @media (max-width: 640px) {
+    .form-box {
+      padding: 15px;
+    }
+
+    .option-box {
+      flex: 1 1 100%;
+    }
+
+    .step-indicator {
+      flex-direction: column;
+    }
+  }
 </style>
