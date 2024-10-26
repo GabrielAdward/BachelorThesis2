@@ -71,18 +71,23 @@
     reader.readAsText(file);
   };
 
-  // Function to parse CSV data
-  const parseCSV = (data) => {
+// Function to parse CSV data and handle unwanted quotation marks
+const parseCSV = (data) => {
     const rows = data.split("\n").filter((row) => row.length > 0);
     const keys = rows[0].split(",");
+    
     const values = rows.slice(1).map((row) => {
       const rowValues = row.split(",");
+
       let rowObj = {};
       keys.forEach((key, index) => {
-        rowObj[key.trim()] = rowValues[index]?.trim(); // Trim values to avoid leading/trailing spaces
+        // Trim spaces and remove surrounding quotes from each value
+        const cleanedValue = rowValues[index]?.trim().replace(/^"|"$/g, "");
+        rowObj[key.trim()] = cleanedValue;
       });
       return rowObj;
     });
+
     csvData = values;
 
     // Extract unique districts (excluding any empty or "Null" values)
@@ -91,7 +96,9 @@
     } else {
       districts = []; // If the file name is not "Test.csv", do not display the buttons
     }
-  };
+    updateFilteredData(); // Ensure the data is filtered and updated after parsing
+};
+
 
   // Update the filtered data based on selected district
   const updateFilteredData = () => {
