@@ -12,6 +12,14 @@
   let errors = {};
   let fileName = ''; // Track the uploaded file name
 
+  const options = [
+  { id: 1, title: "Diverging bars", imagePath: "/src/images/DivergBarChart.png" },
+  { id: 2, title: "Pie chart", imagePath: "/src/images/PieChart.png" },
+  { id: 3, title: "Diverging stacked bars", imagePath: "/src/images/DivSec.png" },
+  { id: 4, title: "Pie chart update", imagePath: "/src/images/PieUpd.png" }
+];
+
+
   // Short explanation for each step
   const stepDescriptions = {
     1: "Please write your question for investigation in this step.",
@@ -247,34 +255,36 @@ const parseCSV = (data) => {
       </div>
     {/if}
 
-    {#if currentStep === 3}
-      <!-- Step 3: Select an Option -->
-      <div class="step-content">
-        <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 3: Choose an Option</h2>
-        <div class="flex flex-wrap gap-2 md:gap-4">
-          {#each [1, 2, 3, 4] as option}
-            <div
-              class={`option-box p-4 border rounded cursor-pointer ${
-                selectedOption === option ? "bg-green-500 text-white" : "bg-gray-300"
-              }`}
-              on:click={() => selectOption(option)}
-            >
-              Option {option}
-            </div>
-          {/each}
-        </div>
-      </div>
-    {/if}
 
-    {#if currentStep === 4}
-      <!-- Step 4: Display Result -->
-      <div class="step-content">
-        <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 4: The result is displayed!</h2>
-        <div class="result-box p-4 border rounded">
-          Your selected option: {selectedOption || "None selected"}
+<!-- Step 3: Choose an Option -->
+{#if currentStep === 3}
+  <div class="step-content">
+    <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 3: Choose an Option</h2>
+    <div class="options-grid">
+      {#each options as option}
+        <div
+          class="option-container"
+          on:click={() => selectOption(option.id)}
+        >
+          <div
+            class={`option-box cursor-pointer transition-all duration-300 ${
+              selectedOption === option.id ? "selected-option" : ""
+            }`}
+          >
+            <img src={option.imagePath} alt="Option Image" class="option-image" />
+            <p class="option-title">{option.title}</p>
+          </div>
         </div>
-      </div>
-    {/if}
+      {/each}
+    </div>
+  </div>
+{/if}
+
+
+
+
+
+  
 
     <!-- Step Explanation -->
     <div class="step-explanation my-4 md:my-6">
@@ -312,6 +322,7 @@ const parseCSV = (data) => {
     min-height: 100vh;
     padding: 20px;
   }
+  
 
   /* Form box responsiveness */
   .form-box {
@@ -345,13 +356,73 @@ const parseCSV = (data) => {
     margin-top: 20px;
   }
 
-  /* Option box hover effect */
-  .option-box {
-    flex: 1 1 45%;
+/* Grid layout with two rows */
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 20px;
+    justify-items: center;
   }
+
+    /* Option container with semi-transparent dark background */
+    .option-container {
+    background-color: rgba(0, 0, 0, 0.05); /* Darker transparent gray */
+    padding: 10px;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+  }
+
+
+
+  
+
+
+     /* Option box styling */
+  .option-box {
+    width: 220px;
+    height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Selected option styling */
+  .selected-option {
+    background-color: #e0f2ff;
+    border-color: #007bff;
+  }
+
+  /* Uniform image styling */
+  .option-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  /* Option title styling */
+  .option-title {
+    margin-top: 10px;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  /* Hover effect for option container */
+  .option-container:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Darken on hover */
+  }
+
+  /* Optional hover effect for options */
   .option-box:hover {
     transform: scale(1.05);
   }
+
+
 
   /* Result box styling */
   .result-box {
