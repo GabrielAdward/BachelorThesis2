@@ -1,38 +1,100 @@
 <script>
+ import PieChartUpd from '../components/charts/PieChartUpd.svelte';
   import { onMount } from 'svelte';
+  import * as d3 from 'd3';
+
+  // Define analysisOptions first
+  const analysisOptions = [
+    { label: "Type of Store", value: "Type" },
+    { label: "Size of Store", value: "Size" },
+    { label: "Revenue", value: "Revenue" },
+    { label: "Yearly Result", value: "YearlyResult" },
+    { label: "Result After Financial Net", value: "ResultAfterFinancialNet" },
+    { label: "Total Assets", value: "TotalAssets" },
+    { label: "Profit Margin", value: "ProfitMargin" },
+    { label: "Solvency", value: "Solvency" },
+    { label: "Cash Flow", value: "CashFlow" },
+    { label: "Gross Profit Margin", value: "GrossProfitMargin" }
+  ];
+
+  // Now define selectedAnalysisOption, which relies on analysisOptions
+  let selectedAnalysisOption = analysisOptions[0].value; // Default to the first option
 
   let currentStep = 1;
   let selectedOption = null;
   let question = "";
-  let csvData = []; // Store CSV data
-  let filteredData = []; // Data filtered based on selected district
-  let districts = []; // Store unique district names
-  let selectedDistrict = "Show All"; // Default selected district
+  let csvData = [];
+  let filteredData = [];
+  let districts = [];
+  let selectedDistrict = "Show All";
   let fileUploaded = false;
   let errors = {};
-  let fileName = ''; // Track the uploaded file name
+  let fileName = '';
+  let availableColumns = [];
+  let selectedColumn = "District";
+  let districtCategories = []; // Data for the pie chart
 
   const options = [
-  { id: 1, title: "Diverging bars", imagePath: "/src/images/DivergBarChart.png" },
-  { id: 2, title: "Pie chart", imagePath: "/src/images/PieChart.png" },
-  { id: 3, title: "Diverging stacked bars", imagePath: "/src/images/DivSec.png" },
-  { id: 4, title: "Pie chart update", imagePath: "/src/images/PieUpd.png" }
-];
+    { id: 1, title: "Diverging bars", imagePath: "/src/images/DivergBarChart.png" },
+    { id: 2, title: "Pie chart", imagePath: "/src/images/PieChart.png" },
+    { id: 3, title: "Diverging stacked bars", imagePath: "/src/images/DivSec.png" },
+    { id: 4, title: "Pie chart update", imagePath: "/src/images/PieUpd.png" }
+  ];
 
-
-  // Short explanation for each step
+  // Continue with the rest of your functions and code
   const stepDescriptions = {
     1: "Please write your question for investigation in this step.",
     2: "Upload a CSV file that contains the relevant data or filter existing data.",
     3: "Select the tool you want to use to analyze the data.",
-    4: "View the result of your data analysis."
+    4: "Choose the column of data to visualize.",
+    5: "View the result of your data analysis."
   };
 
-  const handleNextStep = () => {
+  const updateDistrictCategories = () => {
+  if (selectedDistrict !== "Show All") {
+    // Filter by selected district if not showing all
+    filteredData = csvData.filter(row => row.District === selectedDistrict);
+  } else {
+    // Reset filteredData to all data if "Show All" is selected
+    filteredData = csvData;
+  }
+
+  // Process based on selectedAnalysisOption
+  if (selectedAnalysisOption === "Type") {
+    const groupedData = d3.group(filteredData, d => d.Type);
+    districtCategories = Array.from(groupedData, ([label, items]) => ({
+      label,
+      value: items.length
+    }));
+  } else if (selectedAnalysisOption === "Size") {
+    const groupedData = d3.group(filteredData, d => d.Size);
+    districtCategories = Array.from(groupedData, ([label, items]) => ({
+      label,
+      value: items.length
+    }));
+  } else {
+    // For financial metrics like Revenue, Yearly Result, etc.
+    districtCategories = [
+      { label: "Positive", value: filteredData.filter(d => +d[selectedAnalysisOption] > 0).length },
+      { label: "Negative", value: filteredData.filter(d => +d[selectedAnalysisOption] < 0).length },
+      { label: "NaN", value: filteredData.filter(d => isNaN(+d[selectedAnalysisOption])).length }
+    ];
+  }
+  console.log("District Categories:", districtCategories); // For debugging
+};
+
+
+
+const handleNextStep = () => {
     if (validateStep()) {
       currentStep += 1;
+      if (currentStep === 5) {
+        updateDistrictCategories();
+        console.log("District categories updated for visualization:", districtCategories);
+      }
     }
-  };
+};
+
 
   const handlePrevStep = () => {
     if (currentStep > 1) {
@@ -53,107 +115,71 @@
     return true;
   };
 
-  const selectOption = (option) => {
-    selectedOption = option;
+  const selectOption = (optionId) => {
+    selectedOption = optionId;
   };
 
-  // Handle CSV File Upload
   const handleFileUpload = async (event) => {
-    resetFileState(); // Clear previous file data
+  resetFileState();
 
-    const file = event.target.files[0];
-    fileName = file.name;
+  const file = event.target.files[0];
+  fileName = file.name;
 
-    if (!file || file.type !== "text/csv") {
-      errors.file = "Please upload a valid CSV file.";
-      return;
-    }
+  if (!file || file.type !== "text/csv") {
+    errors.file = "Please upload a valid CSV file.";
+    return;
+  }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result;
-      parseCSV(text); // Parse the CSV data
-      updateFilteredData();
-      fileUploaded = true;
-    };
-    reader.readAsText(file);
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = reader.result;
+    parseCSV(text);
+    filteredData = csvData; // Set filteredData after parsing
+    fileUploaded = true;
+    console.log("File uploaded and data parsed. Filtered data initialized.");
   };
+  reader.readAsText(file);
+};
 
-// Function to parse CSV data and handle unwanted quotation marks
 const parseCSV = (data) => {
-    const rows = data.split("\n").filter((row) => row.length > 0);
-    const keys = rows[0].split(",");
-    
-    const values = rows.slice(1).map((row) => {
-      const rowValues = row.split(",");
+  const rows = d3.csvParse(data);
+  csvData = rows.map(d => d);
 
-      let rowObj = {};
-      keys.forEach((key, index) => {
-        // Trim spaces and remove surrounding quotes from each value
-        const cleanedValue = rowValues[index]?.trim().replace(/^"|"$/g, "");
-        rowObj[key.trim()] = cleanedValue;
-      });
-      return rowObj;
-    });
-
-    csvData = values;
-
-    // Extract unique districts (excluding any empty or "Null" values)
-    if (fileName === "Test.csv") {
-      districts = [...new Set(csvData.map((row) => row.District).filter(district => district && district.toLowerCase() !== "null"))];
-    } else {
-      districts = []; // If the file name is not "Test.csv", do not display the buttons
-    }
-    updateFilteredData(); // Ensure the data is filtered and updated after parsing
+  if (csvData.length > 0) {
+    availableColumns = Object.keys(csvData[0]);
+    districts = [...new Set(csvData.map(row => row.District))];
+    filteredData = csvData;  // Initialize filteredData with all parsed data
+  }
+  console.log("Filtered Data:", filteredData); // For debugging
 };
 
 
-  // Update the filtered data based on selected district
-  const updateFilteredData = () => {
-    if (selectedDistrict === "Show All") {
-      filteredData = csvData;
-    } else {
-      filteredData = csvData.filter((row) => row.District === selectedDistrict);
-    }
-  };
 
-  // Function to handle district selection
-  const selectDistrict = (district) => {
-    selectedDistrict = district;
-    updateFilteredData();
-  };
 
-  // Reset the file state
+
+
   const resetFileState = () => {
     fileName = '';
     csvData = [];
     filteredData = [];
     fileUploaded = false;
     districts = [];
-    selectedDistrict = "Show All"; // Reset the selected district to "Show All"
-  };
-
-  // Cancel CSV upload
-  const cancelFileUpload = () => {
-    resetFileState();
+    selectedDistrict = "Show All";
+    availableColumns = [];
+    selectedColumn = "District";
+    selectedAnalysisOption = "Type";
+    districtCategories = [];
   };
 </script>
+
 
 <!-- Main Form Section -->
 <div class="form-container flex items-center justify-center">
   <div class="form-box p-6 md:p-10 rounded-lg shadow-md">
     <!-- Step Indicator -->
     <ul class="step-indicator flex justify-between mb-6 md:mb-10">
-      {#each [1, 2, 3, 4] as step}
-        <li
-          class={`flex-1 text-center p-2 border ${
-            currentStep === step
-              ? "bg-orange-500 text-white"
-              : currentStep > step
-              ? "bg-green-500 text-white"
-              : "bg-gray-300"
-          }`}
-        >
+      {#each [1, 2, 3, 4, 5] as step}
+        <li class={`flex-1 text-center p-2 border ${currentStep === step ? "bg-orange-500 text-white" : currentStep > step ? "bg-green-500 text-white" : "bg-gray-300"}`}>
           Step {step}
         </li>
       {/each}
@@ -161,15 +187,9 @@ const parseCSV = (data) => {
 
     <!-- Steps Content -->
     {#if currentStep === 1}
-      <!-- Step 1: Enter Question -->
       <div class="step-content">
         <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 1: Write a Question</h2>
-        <input
-          type="text"
-          class="w-full p-2 border mb-4"
-          placeholder="Enter your question here"
-          bind:value={question}
-        />
+        <input type="text" class="w-full p-2 border mb-4" placeholder="Enter your question here" bind:value={question} />
         {#if errors.question}
           <p class="text-red-500 text-sm">{errors.question}</p>
         {/if}
@@ -177,114 +197,86 @@ const parseCSV = (data) => {
     {/if}
 
     {#if currentStep === 2}
-      <!-- Step 2: View and Filter CSV Data -->
       <div class="step-content">
-        <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 2: Uploaded CSV File</h2>
-
-        <!-- File Upload Input -->
+        <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 2: Upload CSV File</h2>
         {#if !fileUploaded}
           <input type="file" accept=".csv" on:change={handleFileUpload} />
-          {#if fileName}
-            <p class="mt-4">Uploading: {fileName}</p>
-          {/if}
           {#if errors.file}
             <p class="text-red-500 text-sm mt-2">{errors.file}</p>
           {/if}
         {/if}
-
-        <!-- District Selection Buttons -->
-        {#if fileUploaded && fileName === "Test.csv"}
-          <div class="district-buttons flex flex-wrap gap-2 mt-4">
-            <button
-              class={`district-button ${
-                selectedDistrict === "Show All"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-300 text-black"
-              } p-2 rounded transition-colors duration-300`}
-              on:click={() => selectDistrict("Show All")}
-            >
-              Show All
-            </button>
-            {#each districts as district}
-              <button
-                class={`district-button ${
-                  selectedDistrict === district
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-300 text-black"
-                } p-2 rounded transition-colors duration-300`}
-                on:click={() => selectDistrict(district)}
-              >
-                {district}
-              </button>
-            {/each}
-          </div>
-        {/if}
-
-        <!-- Show the table with uploaded data -->
-        {#if fileUploaded}
-          <div class="table-container">
-            <div class="scrollable-table">
-              <table class="csv-table">
-                <thead>
-                  <tr>
-                    {#each Object.keys(csvData[0]) as key}
-                      <th>{key}</th>
-                    {/each}
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each filteredData as row}
-                    <tr>
-                      {#each Object.values(row) as value}
-                        <td>{value}</td>
-                      {/each}
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        {/if}
-
-        <!-- Cancel Button to clear uploaded data -->
-        {#if fileUploaded}
-          <button class="cancel-button bg-red-500 text-white py-2 px-4 rounded mt-4" on:click={cancelFileUpload}>
-            Cancel Upload
-          </button>
-        {/if}
       </div>
     {/if}
 
-
-<!-- Step 3: Choose an Option -->
-{#if currentStep === 3}
-  <div class="step-content">
-    <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 3: Choose an Option</h2>
-    <div class="options-grid">
-      {#each options as option}
-        <div
-          class="option-container"
-          on:click={() => selectOption(option.id)}
-        >
-          <div
-            class={`option-box cursor-pointer transition-all duration-300 ${
-              selectedOption === option.id ? "selected-option" : ""
-            }`}
-          >
-            <img src={option.imagePath} alt="Option Image" class="option-image" />
-            <p class="option-title">{option.title}</p>
-          </div>
+    {#if currentStep === 3}
+      <div class="step-content">
+        <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 3: Choose an Option</h2>
+        <div class="options-grid">
+          {#each options as option}
+            <div class="option-container" on:click={() => selectOption(option.id)}>
+              <div class={`option-box ${selectedOption === option.id ? "selected-option" : ""}`}>
+                <img src={option.imagePath} alt="Option Image" class="option-image" />
+                <p class="option-title">{option.title}</p>
+              </div>
+            </div>
+          {/each}
         </div>
+      </div>
+    {/if}
+
+    {#if currentStep === 4}
+  <div class="step-content">
+    <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 4: Select Data Column</h2>
+
+    <!-- Fixed "District" dropdown -->
+    <select disabled class="w-full p-2 border mb-4">
+      <option value="District">District</option>
+    </select>
+
+    <!-- Add this dropdown for analysis options below -->
+    <label>Select Analysis Option:</label>
+    <select bind:value={selectedAnalysisOption} class="w-full p-2 border" on:change={updateDistrictCategories}>
+      {#each analysisOptions as option}
+        <option value={option.value}>{option.label}</option>
       {/each}
-    </div>
+    </select>
+
+    {#if errors.column}
+      <p class="text-red-500 text-sm mt-2">{errors.column}</p>
+    {/if}
+  </div>
+{/if}
+
+{#if currentStep === 5 && selectedOption === 4}
+  <div class="step-content">
+    <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 5: View Result</h2>
+
+    {#if selectedAnalysisOption === "Type"}
+      <PieChartUpd data={districtCategories} title="Store Types" />
+    {:else if selectedAnalysisOption === "Size"}
+      <PieChartUpd data={districtCategories} title="Store Sizes" />
+    {:else if selectedAnalysisOption === "Revenue"}
+      <PieChartUpd data={districtCategories} title="Revenue" />
+    {:else if selectedAnalysisOption === "YearlyResult"}
+      <PieChartUpd data={districtCategories} title="Yearly Result" />
+    {:else if selectedAnalysisOption === "ResultAfterFinancialNet"}
+      <PieChartUpd data={districtCategories} title="Result After Financial Net" />
+    {:else if selectedAnalysisOption === "TotalAssets"}
+      <PieChartUpd data={districtCategories} title="Total Assets" />
+    {:else if selectedAnalysisOption === "ProfitMargin"}
+      <PieChartUpd data={districtCategories} title="Profit Margin" />
+    {:else if selectedAnalysisOption === "Solvency"}
+      <PieChartUpd data={districtCategories} title="Solvency" />
+    {:else if selectedAnalysisOption === "CashFlow"}
+      <PieChartUpd data={districtCategories} title="Cash Flow" />
+    {:else if selectedAnalysisOption === "GrossProfitMargin"}
+      <PieChartUpd data={districtCategories} title="Gross Profit Margin" />
+    {/if}
   </div>
 {/if}
 
 
 
-
-
-  
 
     <!-- Step Explanation -->
     <div class="step-explanation my-4 md:my-6">
@@ -296,20 +288,12 @@ const parseCSV = (data) => {
       {#if currentStep > 1}
         <button class="bg-gray-500 text-white py-2 px-4 rounded" on:click={handlePrevStep}>Back</button>
       {/if}
-      {#if currentStep < 4}
+      {#if currentStep < 5}
         <button class="bg-blue-500 text-white py-2 px-4 rounded" on:click={handleNextStep}>Next</button>
-      {/if}
-      {#if currentStep === 4}
-        <button class="bg-green-500 text-white py-2 px-4 rounded">Finish</button>
       {/if}
     </div>
   </div>
 </div>
-
-
-
-
-
 
 
 
@@ -322,9 +306,6 @@ const parseCSV = (data) => {
     min-height: 100vh;
     padding: 20px;
   }
-  
-
-  /* Form box responsiveness */
   .form-box {
     width: 100%;
     max-width: 800px;
@@ -337,47 +318,30 @@ const parseCSV = (data) => {
     flex-direction: column;
     justify-content: space-between;
   }
-
-  /* Responsive typography */
   h2 {
     font-size: 1.25rem;
   }
-
-  /* Step indicator styling */
   .step-indicator {
     display: flex;
     justify-content: space-between;
     gap: 5px;
     flex-wrap: wrap;
   }
-
-  /* Explanation styling */
   .step-explanation {
     margin-top: 20px;
   }
-
-/* Grid layout with two rows */
-.options-grid {
+  .options-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns */
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
     justify-items: center;
   }
-
-    /* Option container with semi-transparent dark background */
-    .option-container {
-    background-color: rgba(0, 0, 0, 0.05); /* Darker transparent gray */
+  .option-container {
+    background-color: rgba(0, 0, 0, 0.05);
     padding: 10px;
     border-radius: 10px;
     transition: background-color 0.3s ease;
   }
-
-
-
-  
-
-
-     /* Option box styling */
   .option-box {
     width: 220px;
     height: 240px;
@@ -390,104 +354,24 @@ const parseCSV = (data) => {
     border-radius: 8px;
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-
-  /* Selected option styling */
   .selected-option {
     background-color: #e0f2ff;
     border-color: #007bff;
   }
-
-  /* Uniform image styling */
   .option-image {
     width: 100%;
     height: 150px;
     object-fit: cover;
     border-radius: 4px;
   }
-
-  /* Option title styling */
   .option-title {
     margin-top: 10px;
     text-align: center;
     font-weight: bold;
   }
-
-  /* Hover effect for option container */
-  .option-container:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* Darken on hover */
-  }
-
-  /* Optional hover effect for options */
-  .option-box:hover {
-    transform: scale(1.05);
-  }
-
-
-
-  /* Result box styling */
-  .result-box {
-    font-size: 1.25rem;
-    font-weight: bold;
-  }
-
-  /* Right-aligned buttons */
   .button-group {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-  }
-
-  /* Add scrollable table styling */
-  .table-container {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    margin-top: 20px;
-  }
-
-  .csv-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .csv-table th,
-  .csv-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
-  }
-
-  .csv-table th {
-    background-color: #f4f4f4;
-    font-weight: bold;
-  }
-
-  /* District buttons styling */
-  .district-buttons {
-    margin-bottom: 15px;
-  }
-
-  .district-button {
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  .district-button:hover {
-    background-color: #2c7edb;
-    color: white;
-  }
-
-  @media (max-width: 640px) {
-    .form-box {
-      padding: 15px;
-    }
-
-    .option-box {
-      flex: 1 1 100%;
-    }
-
-    .step-indicator {
-      flex-direction: column;
-    }
   }
 </style>
