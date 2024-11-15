@@ -1,156 +1,56 @@
+-- database/init.sql
 USE abc;
 
--- Create store table
 
-DROP TABLE IF EXISTS stores; -- We drop the table if it exists to avoid errors this might change in the future
+-- Drop Stores table if it exists to avoid conflicts during setup
+DROP TABLE IF EXISTS stores;
 
+-- Create the Stores table to store CSV data
 CREATE TABLE stores (
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  name TEXT NOT NULL,
-  url TEXT,
-  district TEXT
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    storeName VARCHAR(100),
+    district VARCHAR(100),
+    typeOfStore VARCHAR(50),
+    sizeOfStore VARCHAR(50),
+    revenue BIGINT,
+    yearlyResult INT,
+    resultAfterFinancialNet INT,
+    totalAssets BIGINT,
+    profitMargin FLOAT,
+    solvency FLOAT,
+    cashFlow FLOAT,
+    grossProfitMargin FLOAT,
+    numEmployees INT,
+    numDeptStores INT,
+    longitude DECIMAL(10, 8),
+    latitude DECIMAL(10, 8)
 );
 
-INSERT INTO stores(name,url,district) VALUES
-('Albins Skomakeri','albins-skomakeri.se/','Mullsjö'),
- ('Åhlens','ahlens.se/varuhus/jonkoping?utm_source=google&utm_medium=organic&utm_campaign=business_profile&utm_content=website_link','Öster')
-,('Akademibokhandeln','akademibokhandeln.se/butik/jonkoping-c','Öster')
-,('Apoteket AB','apoteket.se/apotek/apoteket-ostra-storgatan-jonkoping/',NULL)
-,('Apotek Hjärtat','apotekhjartat.se/hitta-apotek-hjartat/jonkoping/apotek_hjartat_smedjegatan_2_jonkoping/',NULL)
-,('Ashur Brud & Fest - Skrädderi','facebook.com/AshuraitaBrudFest/',NULL)
-,('Asia livs, servicebutik','facebook.com/profile.php?id=100051215441977',NULL)
-,('Ateljé Creativ i Jönköping/Finrummet','/finrummet.net','Väster')
-,('Ateljé KEG','ateljekeg.se','Öster')
-,('Atlantis Dive College','atlantis.se','Väster')
-,('Bagelle väskboutique',NULL,NULL)
-,('Balance Ljud och Bild','balance.se',NULL)
-,('BGA Fotocenter','bgafotocenter.se/jonkoping/','Öster')
-,('Bikupan','bikupan.org','Tändsticksområdet')
-,('Blankdays','https://blankdays.com/collections/all-products?gclid=CjwKCAjwov6hBhBsEiwAvrvN6EZZ1PsnlSJhnE7bmxINtl0Y0noU3rvCybdt217CGd3-bqMdx3mYRxoCK5EQAvD_BwE','Tändsticksområdet')
-,('Boardlife','boardlife.se','Väster')
-,('Borgs skor','borgsskor.se/kontakt','Öster')
-,('Boutique Lykka','boutiquelykka.se','Öster')
-,('Broder Bläck','facebook.com/broderblacktatuering/','Öster')
-,('Buketten','instagram.com/bukettenjonkoping/?hl=sv','Öster')
-,('Busfrö Nytt & Bytt','busfro.se','Öster')
-,('Butiken Noga Utvalt','butikenjkpg.se','Atollen')
-,('Carlings','carlings.com/sv/corporate/Butiker/sweden/58f/','Öster')
-,('Casa Souk','casasouk.se','Väster')
-,('Cervera','cervera.se/hitta-butik/','Öster')
-,('Clas Ohlson','clasohlson.com/se/store-finder?q=J%C3%B6nk%C3%B6ping,%20City&latitude=57.78252&longitude=14.17347&source=search','Öster')
-,('Coop Atollen','coop.se/butiker-erbjudanden/coop/coop-atollen-jonkoping/','Atollen')
-,('Coop Östra Torget','coop.se/butiker-erbjudanden/coop/coop-ostra-torget/','Öster')
-,('Copenhagen Luxe','https://copenhagenluxe.dk/','Öster')
-,('Day fotografi','dayfotografi.se/',NULL)
-,('Dinos kemtvätt','dinos.nu','Väster')
-,('Din Sko','dinsko.se/stores','Öster')
-,('Direkt optik','https://www.direktoptik.se/butiker/jonkoping/ostra-storgatan-29/',NULL)
-,('Dressman','dressmann.com/no/bedriftssider/finn-butikk/Sweden/Dressmann_Jonkoping/','Öster')
-,('Elias Urmästare','facebook.com/profile.php?id=100064073112753',NULL)
-,('Engströms Urmakeri','engstromsurmakeri.se',NULL)
-,('Euroex',NULL,NULL)
-,('Evoke industry',NULL,NULL)
-,('Fabriken','butikfabriken.se','Atollen')
-,('Fiction Prescription','https://www.instagram.com/fiction.prescription.jonkoping/',NULL)
-,('Forex Bank Väster',NULL,'Väster')
-,('Foten','https://www.foten.se/',NULL)
-,('Friendly Corner','https://friendlycorner.se/butiken','Tändsticksområdet')
-,('Galleri 701 ramcenter','galleri701-ram.se',NULL)
-,('Gant','gant.se/stores?lat=57.78261370000001&long=14.1617876&postalCode=j%C3%B6nk%C3%B6ping&radius=10.0','Atollen')
-,('Gåvan','gavanjonkoping.se','Öster')
-,('Gina Tricot','ginatricot.com/se/find-store','Öster')
-,('Go Banana','gobanana.se','Väster')
-,('Godis och Tobakshörnan',NULL,'Öster')
-,('Golden athlete','goldenathlete.se/sv/butiker-2','Öster')
-,('Grmawit Store','grmawit.com/','Väster');
-INSERT INTO stores(name,url,district) VALUES
- ('Guldsmedjan Snarberg','guldsmedjan-snarberg.se','Väster')
-,('Hälsokraft','halsokraft.se/butiker?butik=503','Öster')
-,('Hemköp','hemkop.se/butik/4674','Väster')
-,('Hemmakväll','hemmakvall.se/hitta-butik/','Öster')
-,('Hemtex','hemtex.se/hitta-butik/jonkoping','Öster')
-,('Hi-fi Klubben','hifiklubben.se/hitta-butik/jonkoping/?gclid=Cj0KCQjwhsmaBhCvARIsAIbEbH4w2ngSDzygBKQSqHVzCSFAplyrpByCMojT6dfo-Xnjcn7P9j_jBn8aAsD0EALw_wcB','Väster')
-,('H&M','hm.com/sv_se/customer-service/shoppa-pa-hm/store-locator','Öster')
-,('H&M Home','hm.com/sv_se/customer-service/shoppa-pa-hm/store-locator','Öster')
-,('Indiska','indiska.com/se/butiker','Öster')
-,('Jeansshoppen','jeansshopen.se/sv/kontakt','Öster')
-,('JL Sycenter','jlsycenter.se/kontakta-oss/',NULL)
-,('Jönköpings antik och konsthandel',NULL,'Väster')
-,('Jönköpings Cigrarrimport','atg.se/jonkopingscigarrimport',NULL)
-,('KappAhl','www.kappahl.com/sv-SE/kundservice/kundservice/hitta-butik/','Öster')
-,('Karin Lund Design','facebook.com/karinlunddesign/',NULL)
-,('Katrin Bååths Ateljé','https://katrinbaath.se/ateljen/','Tändsticksområdet')
-,('Kicks','kicks.se/butiker/jonkoping-smedjegatan','Öster')
-,('Kjell & Company','kjell.com/se/butiker/sodra-strandgatan-5','Öster')
-,('Klädscoopet','facebook.com/Kladscoopet/','Öster')
-,('KOiJ Konsthantverk','koij.se','Öster')
-,('Kristina Brud & Fest','kristinabrud-fest.se','Väster')
-,('Kronans Apotek Atollen','apoteksinfo.nu/apotek/kronans_apotek_atollen_j%C3%B6nk%C3%B6ping-1415','Atollen')
-,('Kvänum Kök','kvanum.com/se/showrooms/jonkoping/','Öster')
-,('Lagerhaus','lagerhaus.se/stores','Öster')
-,('Lavér Studio','laverstudio.com/',NULL)
-,('Life Naturlig Hälsa','https://www.lifebutiken.se/stores','Väster')
-,('Lilla Violen','lillaviolen.com/','Väster')
-,('Lindex','lindex.com/se/hitta-din-butik?location=57.756066%2C14.188254&storeId=002&zoom=11','Öster')
-,('Livspotential Kroppsterapi','facebook.com/Livspotential/',NULL)
-,('Lloyd Tabing Art Gallery','lloydtabingart.com/','Tändsticksområdet')
-,('Macforum','macforum.se/butiker/forum-jonkoping','Öster')
-,('MarQet','mq.se/butiker/?gclid=Cj0KCQjwteOaBhDuARIsADBqRejM-U3YQY9vh4F6gSXC2LnJWPVGKJ7CGfiCl1tYkREGUR37cTWMNcoaAjFGEALw_wcB','Öster')
-,('Mimosa City','mimosacity.se',NULL)
-,('Moderna Smycken','klockorochsmycken.se/','Öster')
-,('Naturkompaniet','murphysbar.se/sv/','Öster')
-,('Newhouse','newhouse.se/newhouse/vara-butiker','Atollen')
-,('New Yorker','newyorker.de/se/stores/','Öster')
-,('Nilson Shoes','dinsko.se/stores','Öster')
-,('Noa Noa','httpsfacebook.com/Noa-Noa-J%C3%B6nk%C3%B6ping-446212958766553/','Öster')
-,('Nordisk Möbelkonst','nordiskmobelkonst.se/','Öster')
-,('Normal','normal.se/hitta-butik/','Öster')
-,('Nya Musik','nyamusik.se/','Väster')
-,('Once for girls','oncestore.se/','Öster')
-,('Önska','onska.se/vara-butiker/','Öster')
-,('Optiker Jahnke','jahnke.se/','Öster')
-,('Optiker Ullström','optikerullstrom.se/','Väster')
-,('Optik & Form','optikochform.se/',NULL)
-,('Partyland','partyland.party/butiker/','Väster')
-,('Planta Blommor','plantablommor.se/?gclid=Cj0KCQjwteOaBhDuARIsADBqRehsWXSRNHjeGnPn_AyambJZLmNntWxsMnUkANIHdme0NoDtc2Xi8mgaAicoEALw_wcB#.Y2p1tuzMLPZ','Väster')
-,('Pleasure erotic shop','pleasureeroticshop.se/','Väster');
-INSERT INTO stores(name,url,district) VALUES
- ('PMU Second Hand Jönköping City','pmu.se/stores/jonkopingcity/','Öster')
-,('Pressbyrån Östra storgatan','pressbyran.se/kontakt/hitta-butik/','Öster')
-,('Pressbyrån Resecentrum','pressbyran.se/kontakt/hitta-butik/','Resecentrum')
-,('Pressbyrån Väster','pressbyran.se/kontakt/hitta-butik/','Väster')
-,('Rabalder','publik.rabalder.se/butiker/joenkoeping.aspx','Öster')
-,('Resehuset','resehuset.se/','Väster')
-,('Rituals','rituals.com/sv-se/store-detail?store=J%C3%B6nk%C3%B6ping-%C3%96stra-Storgatan','Öster')
-,('Rizzo','rizzo.se/stores/','Öster')
-,('Röda Korset Second Hand','rodakorset.se/vad-vi-gor/second-hand/butiker/roda-korset-secondhand-jonkoping/?gclid=CjwKCAjwzY2bBhB6EiwAPpUpZvHzKjPuEJP8mzdhkuZYuEUoinVduEX8lEL6C0cnHq-JkG5o4XalYBoCwX8QAvD_BwE','Väster')
-,('Rundquist & Zälle','rundquist-zalle.com','Väster')
-,('Säfvers Tobak','facebook.com/people/S%C3%A4fvers-tobak/100049803762896/',NULL)
-,('SåIniNordeN','saininorden.se/','Öster')
-,('Sandströms','sandstroms.nu/butiker/sandstroms-jonkoping','Öster')
-,('Sarabello','facebook.com/people/SARABELLO/100054240470073/','Öster')
-,('Saumas sko & nyckelservice','saumasskoochnyckelservice.heymo.se/',NULL)
-,('Sjöqvists skomakeri','sjoqvistskomakeri.se/','Väster')
-,('Smålands Skinnmanufaktur','smalandsskinnmanufaktur.se/','Tändsticksområdet')
-,('Smarteyes','smarteyes.se/butiker/jonkoping',NULL)
-,('Smycka Guld','smycka.se/store/19',NULL)
-,('Smycket','smycketjonkoping.se/',NULL)
-,('Specsavers','httpspecsavers.se/hitta-till-din-butik/jonkoping-city?utm_source=google&utm_medium=organic&utm_campaign=gmb-website&utm_content=jonkoping&y_source=1_NDA4Nzk2NjQtNzE1LWxvY2F0aW9uLndlYnNpdGU%3D',NULL)
-,('Stagelight','stagelight.se/',NULL)
-,('Stil','stilbutikerna.se/','Öster')
-,('Story','storyjkpg.se','Atollen')
-,('SunOff','sunoff.se/butiker/jonkoping?gclid=CjwKCAjw8JKbBhBYEiwAs3sxNy3EnUFGceeFxyJN35fymdpsg5qEWUTPj6Sx0TbNoLdwp8E6AI-I5xoC45gQAvD_BwE','Väster')
-,('Synoptik','httpsynoptik.se/butiker/jonkoping/jonkoping-ostra-storgatan5?utm_campaign=gmb-website&utm_source=google&utm_medium=organic&utm_content=667-Jonkoping-Ostra-Storgatan-5',NULL)
-,('Synsam Jönköping Öster','synsam.se/optiker/synsam-j%C3%B6nk%C3%B6ping-%C3%B6ster/128','Öster')
-,('Synsam Jönköping Väster','synsam.se/optiker/synsam-j%C3%B6nk%C3%B6ping-v%C3%A4ster/125','Väster')
-,('Systembolaget','systembolaget.se/butiker-ombud/','Öster')
-,('The Body Shop','thebodyshop.com/sv-se/store-details/jonkoping-smedjegatan/3801?utm_source=google&utm_medium=organic-local&utm_campaign=yext&utm_content=3801','Öster')
-,('Ticket','ticket.se/resebutiker/jonkoping.html',NULL)
-,('Twilfit','shop.change.com/sv-SE','Öster')
-,('Ur & Penn','uropenn.se/hitta-butik/','Öster')
-,('Västanhem Butik','vastanhem.se','Väster')
-,('Västra klackbaren',NULL,NULL)
-,('Vätterbygden Ankarbergs Begravningsbyrå','ankarbergs.se/',NULL)
-,('Vätterfisk','xn--vtterfisk-v2a.se/','Väster')
-,('Yxhage Lås och Larm','yxhage.se/',NULL)
-,('Zephyr Tattoo Parlour','zephyrtattoo.se','Öster');
+
+-- Create the SavedCharts table for storing analysis results
+DROP TABLE IF EXISTS SavedCharts;
+
+CREATE TABLE SavedCharts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT,
+    columnsUsed JSON,
+    chartType VARCHAR(50),
+    dataSummary TEXT,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+INSERT INTO stores (storeName, district, typeOfStore, sizeOfStore, revenue, yearlyResult, resultAfterFinancialNet, totalAssets, profitMargin, solvency, cashFlow, grossProfitMargin, numEmployees, numDeptStores, longitude, latitude) VALUES 
+('Ahlens', 'Oster', 'Clothes', 'Medium/large', 5807316, -408336, -406569, 2573720, -0.0683, 0.661, 0.2519, 0.3533, 3000, 70, 14.174874559926424, 57.78237409771282),
+('Akademibokhandeln', 'Oster', 'Book Store', 'Medium/small', 24, 14473, 7785, 566998, NULL, 0.1049, 0.0242, NULL, 580, 95, 14.171551942849105, 57.78660990431919),
+('Apoteket AB', NULL, 'Medicin', 'Medium/small', 21297000, 402000, 516000, 13309000, 0.0251, 0.6333, 1.4335, 0.1864, 3500, 390, 14.174359573465336, 57.78305964824419),
+('Apoteket AB', NULL, 'Medicin', 'Medium/small', 21297000, 402000, 516000, 13309000, 0.0251, 0.6333, 1.4335, 0.1864, 3500, 390, 14.174359573465336, 57.78305964824419),
+('Apotek Hjartat', NULL, 'Medicin', 'Medium', 16962564, -621789, -14689, 4053176, 0.0009, 0.0289, 0.539, 0.2527, 3000, 390, 14.170115433417717, 57.783348181762314),
+('Ashur Brud & Fest - Skradderi', NULL, 'Clothes', 'Small', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 14.15878435119998, 57.78281087027537),
+('Asia livs', NULL, 'Laundry Store', 'Small', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 14.185679309322838, 57.781416791177094),
+('Atelje Creativ i Jonkoping/Finrummet', 'Vaster', 'Art', 'Small', 150000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 14.162675310965714, 57.782590772091126);
+
+
+
+

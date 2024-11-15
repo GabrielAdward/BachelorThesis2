@@ -10,8 +10,8 @@
             "port": 5555,
             "driver": "MariaDB",
             "name": "Thesis",
-            "database": "abc",
-            "username": "root"
+            "username": "root",
+            "database": "abc"
         }
     ]
 }
