@@ -26,35 +26,38 @@ class StoreModel {
     async getAllStores() {
         const sql = 'SELECT * FROM stores';
         const result = await this.pool.query(sql);
-        return result;
-    }
-
-
-    async getStoreById(storeId) {
-        const sql = 'SELECT * FROM stores WHERE id = ?';
-        const result = await this.pool.query(sql, [storeId]);
-        return result;
-    }
-
-    async createStore(name, url, district) {
-        const sql = 'INSERT INTO stores (name, url, district) VALUES (?, ?, ?)';
-        await this.pool.query(sql, [name, url, district]).then((result) => {
-            // Get the ID of the newly created store
-            const id = result.insertId;
-            // Return the ID of the newly created store
-            return id;
+    
+        // Convert BigInt fields to strings
+        const sanitizedResult = result.map(row => {
+            for (const key in row) {
+                if (typeof row[key] === 'bigint') {
+                    row[key] = row[key].toString(); // Convert BigInt to string
+                }
+            }
+            return row;
         });
+    
+        return sanitizedResult;
     }
 
-    async deleteStore(storeId) {
-        const sql = 'DELETE FROM stores WHERE id = ?';
-        await this.pool.query(sql, [storeId]);
+    async getStoresByDistrict(district) {
+        const sql = 'SELECT * FROM stores WHERE district = ?';
+        const result = await this.pool.query(sql, [district]);
+    
+        // Convert BigInt fields to strings (if needed)
+        const sanitizedResult = result.map(row => {
+            for (const key in row) {
+                if (typeof row[key] === 'bigint') {
+                    row[key] = row[key].toString();
+                }
+            }
+            return row;
+        });
+    
+        return sanitizedResult;
     }
-
-    async updateStore(storeId, name, url, district) {
-        const sql = 'UPDATE stores SET name = ?, url = ?, district = ? WHERE id = ?';
-        await this.pool.query(sql, [name, url, district, storeId]);
-    }
+    
+    
 
 
 
