@@ -12,7 +12,9 @@
   let storeData = []; // Initialize storeData (was missing before)
   let districts = [];
   let selectedDistrict = "Show All";
-  let selectedOption = null;
+  let selectedOption = null; // Selected tool from Step 3
+  let district = "All"; // Default district for Step 4
+  let variable = "typeOfStore"; // Default variable for Step 4
   let analysisOptions = [
     { label: "Type of Store", value: "Type" },
     { label: "Size of Store", value: "Size" },
@@ -32,7 +34,6 @@
     }
   };
 </script>
-
 
 <div class="form-container flex items-center justify-center">
   <div class="form-box p-6 md:p-10 rounded-lg shadow-md">
@@ -57,13 +58,17 @@
     {#if currentStep === 1}
       <Step1 {question} />
     {:else if currentStep === 2}
-    <Step2 {storeData} {districts} {selectedDistrict} />
-    {:else if currentStep === 3}
-      <Step3 {selectedOption} />
+      <Step2 {storeData} {districts} {selectedDistrict} />
+      {:else if currentStep === 3}
+      {console.log("Form: Passing selectedOption to Step 3:", selectedOption)}
+      <Step3 bind:selectedOption={selectedOption} />
     {:else if currentStep === 4}
-      <Step4 {analysisOptions} {selectedAnalysisOption} />
-    {:else if currentStep === 5}
-      <Step5 {selectedAnalysisOption} {districtCategories} />
+      {console.log("Form: Passing selectedOption to Step 4:", selectedOption)}
+      <Step4 bind:district bind:variable {selectedOption} />
+    
+      {:else if currentStep === 5}
+      <Step5 {district} {variable} />
+        
     {/if}
 
     <!-- Step Navigation Buttons -->
