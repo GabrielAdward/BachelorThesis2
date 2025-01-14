@@ -33,37 +33,13 @@ app.get('/chart-data', async (req, res) => {
   const { district, variable } = req.query;
 
   try {
-    let filteredData = stores; // Replace `stores` with your data source
-
-    // Filter by district
-    if (district && district !== 'All') {
-      filteredData = filteredData.filter(
-        (store) => store.district === district
-      );
-    }
-
-    // Group data by the selected variable (e.g., typeOfStore)
-    const groupedData = d3.rollups(
-      filteredData,
-      (v) => v.length, // Count items in each group
-      (d) => d[variable] // Group by the selected variable
-    );
-
-    // Format data for the pie chart
-    const chartData = groupedData.map(([label, value]) => ({
-      label: label || 'Unknown', // Handle missing labels
-      value,
-    }));
-
-    res.json(chartData);
+      const chartData = await model.getChartData(district, variable);
+      res.json(chartData); // Safely serialize the response
   } catch (error) {
-    console.error('Error in /chart-data:', error);
-    res.status(500).send('Internal Server Error');
+      console.error('Error in /chart-data:', error);
+      res.status(500).send('Internal Server Error');
   }
 });
-
-
-
 
 
 

@@ -27,8 +27,9 @@ console.log("Step 4 (initial): variable =", variable);
           <option value="All">All</option>
           <option value="Oster">Oster</option>
           <option value="Vaster">Vaster</option>
-          <option value="null">null</option> <!-- Use "null" instead of "Unknown" -->
+          <option value="Ingen">Ingen</option> <!-- Replaced "null" with "Ingen" -->
         </select>
+        
       </div>
       
 
