@@ -5,15 +5,11 @@
   import Step4 from "../differentSteps/Step4.svelte";
   import Step5 from "../differentSteps/Step5.svelte";
 
-  let currentStep = 1; // Controls which step is displayed
-
   // Shared data
   let question = ""; // Question input for Step 1
-  let storeData = []; // Initialize storeData (was missing before)
-  let districts = [];
+  let storeData = []; // Data to display in Step 2
+  let districts = []; // Districts for selection in Step 2
   let selectedDistrict = "Show All";
-  let selectedOption = null; // Selected tool from Step 3
-  let district = "All"; // Default district for Step 4
   let variable = "typeOfStore"; // Default variable for Step 4
   let analysisOptions = [
     { label: "Type of Store", value: "Type" },
@@ -24,14 +20,17 @@
   let districtCategories = [];
   let errors = {}; // Placeholder for future validation errors
 
-  const handleNextStep = () => {
-    currentStep++; // Move to the next step without any validation
-  };
+  let currentStep = 1; // Controls which step is currently displayed
+  let selectedOption = null; // Selected tool in Step 3
+  let district = "All"; // Selected district for Step 4
+  let storeType = "All"; // Selected store type for Step 4
+  let economicStat = "revenue"; // Selected economic variable for Step 4
 
+  const handleNextStep = () => {
+    currentStep++;
+  };
   const handlePrevStep = () => {
-    if (currentStep > 1) {
-      currentStep--; // Move to the previous step
-    }
+    if (currentStep > 1) currentStep--;
   };
 </script>
 
@@ -56,38 +55,29 @@
 
     <!-- Step Content -->
     {#if currentStep === 1}
-      <Step1 {question} />
+      <Step1 bind:question={question} />
     {:else if currentStep === 2}
-      <Step2 {storeData} {districts} {selectedDistrict} />
-      {:else if currentStep === 3}
-      {console.log("Form: Passing selectedOption to Step 3:", selectedOption)}
+      <Step2 bind:storeData={storeData} bind:districts={districts} bind:selectedDistrict={selectedDistrict} />
+    {:else if currentStep === 3}
       <Step3 bind:selectedOption={selectedOption} />
     {:else if currentStep === 4}
-      {console.log("Form: Passing selectedOption to Step 4:", selectedOption)}
-      <Step4 bind:district bind:variable {selectedOption} />
-    
-      {:else if currentStep === 5}
-      <Step5 {district} {variable} />
-        
+      <Step4
+        bind:selectedOption={selectedOption}
+        bind:district={district}
+        bind:storeType={storeType}
+        bind:economicStat={economicStat}
+      />
+    {:else if currentStep === 5}
+      <Step5 {selectedOption} {district} {storeType} {economicStat} />
     {/if}
 
-    <!-- Step Navigation Buttons -->
+    <!-- Navigation Buttons -->
     <div class="button-group mt-6 flex justify-end gap-3">
       {#if currentStep > 1}
-        <button
-          class="bg-gray-500 text-white py-2 px-4 rounded"
-          on:click={handlePrevStep}
-        >
-          Back
-        </button>
+        <button class="bg-gray-500 text-white py-2 px-4 rounded" on:click={handlePrevStep}>Back</button>
       {/if}
       {#if currentStep < 5}
-        <button
-          class="bg-blue-500 text-white py-2 px-4 rounded"
-          on:click={handleNextStep}
-        >
-          Next
-        </button>
+        <button class="bg-blue-500 text-white py-2 px-4 rounded" on:click={handleNextStep}>Next</button>
       {/if}
     </div>
   </div>

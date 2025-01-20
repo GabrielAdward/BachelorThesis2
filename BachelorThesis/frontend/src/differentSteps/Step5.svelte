@@ -1,16 +1,21 @@
 <script>
-  import PieChart from "../components/charts/PieChart.svelte"; // Path to PieChart.svelte
+  import PieChart from "../components/charts/PieChart.svelte";
+  import DivergingBar from "../components/charts/DivBar.svelte";
 
-  export let district = "All"; // Passed from Step 4
-  export let variable = "typeOfStore"; // Passed from Step 4
+  export let selectedOption = null;
+  export let district = "All";
+  export let storeType = "All";
+  export let economicStat = "revenue";
 </script>
 
 <div class="step-content">
-  <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 5: View Pie Chart</h2>
+  <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 5: View Chart</h2>
 
-  <!-- Render Pie Chart Component -->
-  <PieChart {district} {variable} />
-
+  {#if selectedOption === 1}
+    <DivergingBar {district} {storeType} {economicStat} />
+  {:else if selectedOption === 2}
+    <PieChart {district} variable="typeOfStore" />
+  {/if}
 </div>
 
 <style>
