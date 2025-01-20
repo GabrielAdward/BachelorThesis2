@@ -43,6 +43,21 @@ app.get('/chart-data', async (req, res) => {
 });
 
 
+// Endpoint to fetch diverging bar chart data
+app.get('/diverging-bar-data', async (req, res) => {
+    const { district, storeType, economicStat } = req.query;
+
+    console.log('Received request for Diverging Bar Data:', req.query);
+
+    try {
+        const data = await model.getDivergingBarData(district, storeType, economicStat);
+        res.status(200).json(data);
+    } catch (error) {
+        console.error('Error in /diverging-bar-data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 
 

@@ -39,6 +39,7 @@ class StoreModel {
     
         return sanitizedResult;
     }
+
     async getChartData(district, variable) {
         try {
             const allowedColumns = ['typeOfStore', 'sizeOfStore', 'district'];
@@ -68,6 +69,56 @@ class StoreModel {
             console.error('Error fetching chart data:', error);
             throw new Error('Error fetching chart data');
         }
+    }
+
+    async getDivergingBarData(district, storeType, economicStat) {
+        try {
+            // Validate economicStat to prevent SQL injection
+            const allowedColumns = [
+                'revenue', 
+                'profitMargin', 
+                'yearlyResult', 
+                'cashFlow', 
+                'totalAssets'
+            ];
+            if (!allowedColumns.includes(economicStat)) {
+                throw new Error('Invalid economicStat for Diverging Bar Data');
+            }
+
+            // Build query
+            let sql = `SELECT storeName AS label, ${economicStat} AS value FROM stores`;
+            const params = [];
+
+            // Add filters
+            if (district !== 'All') {
+                sql += ' WHERE district = ?';
+                params.push(district);
+            }
+            if (storeType !== 'All') {
+                sql += district === 'All' ? ' WHERE' : ' AND';
+                sql += ' typeOfStore = ?';
+                params.push(storeType);
+            }
+
+            console.log('Executing SQL:', sql, 'with params:', params);
+            const result = await this.pool.query(sql, params);
+            return this._sanitizeBigInt(result);
+        } catch (error) {
+            console.error('Error fetching diverging bar data:', error);
+            throw new Error('Error fetching diverging bar data');
+        }
+    }
+
+    // Utility to sanitize BigInt fields
+    _sanitizeBigInt(data) {
+        return data.map(row => {
+            for (const key in row) {
+                if (typeof row[key] === 'bigint') {
+                    row[key] = row[key].toString(); // Convert BigInt to string
+                }
+            }
+            return row;
+        });
     }
     
     
