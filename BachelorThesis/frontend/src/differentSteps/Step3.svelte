@@ -1,5 +1,6 @@
 <script>
   export let selectedOption = null; // Holds the ID of the selected option
+
   const tools = [
     {
       id: 1,
@@ -21,7 +22,6 @@
   };
 </script>
 
-<!-- Step 3 UI -->
 <div class="step-content">
   <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 3: Choose Your Analysis Tool</h2>
   <p class="text-gray-700 mb-6">
@@ -29,10 +29,17 @@
   </p>
 
   <!-- Tools Grid -->
-  <div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     {#each tools as tool}
-      <div on:click={() => selectTool(tool.id)}>
-        {tool.title}
+      <div
+        class={`tool-box p-4 rounded-md shadow-md border cursor-pointer ${
+          selectedOption === tool.id ? "border-blue-500 bg-blue-50" : "border-gray-300"
+        }`}
+        on:click={() => selectTool(tool.id)}
+      >
+        <img src={tool.image} alt={tool.title} class="w-full h-32 object-cover rounded-md mb-4" />
+        <h3 class="text-md font-bold mb-2">{tool.title}</h3>
+        <p class="text-sm text-gray-600">{tool.description}</p>
       </div>
     {/each}
   </div>
@@ -46,19 +53,18 @@
   {/if}
 </div>
 
-
 <style>
-  .tool-container {
+  .tool-box {
     transition: all 0.3s ease;
   }
-  .tool-container:not(.selected-tool):hover {
-    border-color: #d1d5db; /* Light gray hover border for non-selected tools */
+  .tool-box:hover {
+    border-color: #2563eb; /* Blue border on hover */
+    background-color: #f0f9ff; /* Light blue background on hover */
   }
-  .selected-tool {
-    border-color: #2563eb; /* Blue border for selected tool */
-    background-color: #eff6ff; /* Light blue background for selected tool */
+  .tool-box img {
+    transition: transform 0.3s ease;
   }
-  .selected-info {
-    background-color: #f0f9ff; /* Light blue info box */
+  .tool-box:hover img {
+    transform: scale(1.05); /* Slight zoom effect on hover */
   }
 </style>
