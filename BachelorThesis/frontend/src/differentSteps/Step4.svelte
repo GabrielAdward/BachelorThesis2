@@ -19,7 +19,6 @@ console.log("Step 4 (initial): variable =", variable);
   {#if selectedOption === 2}
     <!-- Pie Chart Configuration -->
     <div>
-      <p class="mb-4 text-gray-600">Pie Chart Configuration</p>
 
       <div class="mb-4">
         <label for="district" class="block mb-1 font-medium">Select District:</label>
