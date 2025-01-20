@@ -39,10 +39,8 @@ class StoreModel {
     
         return sanitizedResult;
     }
-
     async getChartData(district, variable) {
         try {
-            // Ensure the column name is safe to use in a query
             const allowedColumns = ['typeOfStore', 'sizeOfStore', 'district'];
             if (!allowedColumns.includes(variable)) {
                 throw new Error('Invalid variable for chart data');
@@ -51,32 +49,28 @@ class StoreModel {
             let sql = `SELECT \`${variable}\` AS label, COUNT(*) AS value FROM stores`;
             const params = [];
     
-            // Add district filtering if provided
             if (district && district !== 'All') {
                 sql += ' WHERE district = ?';
                 params.push(district);
             }
     
             sql += ' GROUP BY label';
+            console.log('Executing SQL:', sql, 'with params:', params); // Debug SQL
+    
             const result = await this.pool.query(sql, params);
     
-            // Replace null labels with "Ingen" and convert BigInt to strings
-            const sanitizedResult = result.map((row) => {
-                const sanitizedRow = {};
-                for (const key in row) {
-                    sanitizedRow[key] =
-                        typeof row[key] === 'bigint' ? row[key].toString() : row[key];
-                }
-                sanitizedRow.label = sanitizedRow.label || 'Ingen'; // Replace null labels with "Ingen"
-                return sanitizedRow;
-            });
-    
-            return sanitizedResult;
+            return result.map((row) => ({
+                ...row,
+                label: row.label || 'Ingen', // Replace null with "Ingen"
+                value: typeof row.value === 'bigint' ? row.value.toString() : row.value,
+            }));
         } catch (error) {
             console.error('Error fetching chart data:', error);
             throw new Error('Error fetching chart data');
         }
     }
+    
+    
     
     
     

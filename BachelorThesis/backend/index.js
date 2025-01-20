@@ -30,16 +30,18 @@ app.get('/', async (req, res) => {
 
 
 app.get('/chart-data', async (req, res) => {
-  const { district, variable } = req.query;
+    const { district, variable } = req.query;
+    console.log("Received request for chart data:", { district, variable }); // Log received parameters
 
-  try {
-      const chartData = await model.getChartData(district, variable);
-      res.json(chartData); // Safely serialize the response
-  } catch (error) {
-      console.error('Error in /chart-data:', error);
-      res.status(500).send('Internal Server Error');
-  }
+    try {
+        const chartData = await model.getChartData(district, variable);
+        res.json(chartData); // Safely serialize the response
+    } catch (error) {
+        console.error('Error in /chart-data:', error);
+        res.status(500).send('Internal Server Error');
+    }
 });
+
 
 
 
