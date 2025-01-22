@@ -73,23 +73,25 @@ class StoreModel {
 
     async getDivergingBarData(district, storeType, economicStat) {
         try {
-            // Validate economicStat to prevent SQL injection
             const allowedColumns = [
                 'revenue', 
-                'profitMargin', 
                 'yearlyResult', 
+                'resultAfterFinancialNet', 
+                'totalAssets', 
+                'profitMargin', 
+                'solvency', 
                 'cashFlow', 
-                'totalAssets'
+                'grossProfitMargin', 
+                'numEmployees', 
+                'numDeptStores'
             ];
             if (!allowedColumns.includes(economicStat)) {
                 throw new Error('Invalid economicStat for Diverging Bar Data');
             }
-
-            // Build query
+    
             let sql = `SELECT storeName AS label, ${economicStat} AS value FROM stores`;
             const params = [];
-
-            // Add filters
+    
             if (district !== 'All') {
                 sql += ' WHERE district = ?';
                 params.push(district);
@@ -99,15 +101,22 @@ class StoreModel {
                 sql += ' typeOfStore = ?';
                 params.push(storeType);
             }
-
+    
             console.log('Executing SQL:', sql, 'with params:', params);
             const result = await this.pool.query(sql, params);
-            return this._sanitizeBigInt(result);
+    
+            // Convert BigInt to number safely and sanitize nulls
+            return result.map(row => ({
+                label: row.label,
+                value: row.value ? Number(row.value) : 0 // Convert BigInt to Number or set to 0 if null
+            }));
         } catch (error) {
             console.error('Error fetching diverging bar data:', error);
             throw new Error('Error fetching diverging bar data');
         }
     }
+    
+    
 
     // Utility to sanitize BigInt fields
     _sanitizeBigInt(data) {

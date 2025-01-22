@@ -12,7 +12,7 @@
   <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 5: View Chart</h2>
 
   {#if selectedOption === 1}
-    <DivergingBar {district} {storeType} {economicStat} />
+  <DivergingBar {district} {storeType} {economicStat} barHeightMultiplier={0.6} />
   {:else if selectedOption === 2}
     <PieChart {district} variable="typeOfStore" />
   {/if}
