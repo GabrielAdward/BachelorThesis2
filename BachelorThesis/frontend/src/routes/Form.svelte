@@ -5,32 +5,30 @@
   import Step4 from "../differentSteps/Step4.svelte";
   import Step5 from "../differentSteps/Step5.svelte";
 
-  // Shared data
-  let question = ""; // Question input for Step 1
-  let storeData = []; // Data to display in Step 2
-  let districts = []; // Districts for selection in Step 2
-  let selectedDistrict = "Show All";
-  let variable = "typeOfStore"; // Default variable for Step 4
-  let analysisOptions = [
-    { label: "Type of Store", value: "Type" },
-    { label: "Size of Store", value: "Size" },
-    { label: "Revenue", value: "Revenue" },
-  ];
-  let selectedAnalysisOption = analysisOptions[0].value;
-  let districtCategories = [];
-  let errors = {}; // Placeholder for future validation errors
+  // Shared data across steps
+  let question = ""; // Step 1: User input question
+  let storeData = []; // Step 2: Display data
+  let districts = []; // Step 2: Available districts for selection
+  let selectedDistrict = "Show All"; // Step 2: Selected district
+  let district = "All"; // Step 4: Selected district for visualization
+  let storeType = "All"; // Step 4: Selected store type
+  let economicStat = "revenue"; // Step 4: Selected economic variable
+  let selectedOption = null; // Previously used for selecting visualization, now redundant
+  let currentTool = 1; // Tracks Pie Chart and Diverging Bar Chart selection in Step 4
 
-  let currentStep = 1; // Controls which step is currently displayed
-  let selectedOption = null; // Selected tool in Step 3
-  let district = "All"; // Selected district for Step 4
-  let storeType = "All"; // Selected store type for Step 4
-  let economicStat = "revenue"; // Selected economic variable for Step 4
+  let currentStep = 1; // Tracks current form step
+  let errors = {}; // Placeholder for validation errors
 
   const handleNextStep = () => {
-    currentStep++;
+    if (currentStep < 5) {
+      currentStep++;
+    }
   };
+
   const handlePrevStep = () => {
-    if (currentStep > 1) currentStep--;
+    if (currentStep > 1) {
+      currentStep--;
+    }
   };
 </script>
 
@@ -59,16 +57,11 @@
     {:else if currentStep === 2}
       <Step2 bind:storeData={storeData} bind:districts={districts} bind:selectedDistrict={selectedDistrict} />
     {:else if currentStep === 3}
-      <Step3 bind:selectedOption={selectedOption} />
+      <Step3 />
     {:else if currentStep === 4}
-      <Step4
-        bind:selectedOption={selectedOption}
-        bind:district={district}
-        bind:storeType={storeType}
-        bind:economicStat={economicStat}
-      />
+      <Step4 bind:district={district} bind:storeType={storeType} bind:economicStat={economicStat} bind:currentTool={currentTool} />
     {:else if currentStep === 5}
-      <Step5 {selectedOption} {district} {storeType} {economicStat} />
+      <Step5 {district} {storeType} {economicStat} />
     {/if}
 
     <!-- Navigation Buttons -->

@@ -1,47 +1,54 @@
-const express = require('express'); // Express is a web application framework for Node.js
-const cors = require('cors'); // CORS middleware to enable cross-origin resource sharing
-const multer = require('multer'); // Multer is used for handling file uploads
-const Papa = require('papaparse'); // PapaParse is used to parse CSV files
-const fs = require('fs'); // File system module to read and delete files
-const path = require('path'); // Path module to handle and transform file paths
-const app = express(); // Initialize Express app
-const PORT = 8080; // Define the port on which the server will run
+const express = require('express'); 
+const cors = require('cors'); 
+const multer = require('multer'); 
+const fs = require('fs'); 
+const path = require('path'); 
+const app = express();
+const PORT = 8080;
 
-const storeModel = require('./src/app.js'); // Importing the model to interact with the database
-const model = new storeModel(); // Create an instance of the store model
+const StoreModel = require('./src/app.js'); 
+const model = new StoreModel(); 
 
-// Multer setup for file uploads, specifying the destination folder as 'uploads/'
 const upload = multer({ dest: 'uploads/' });
 
-app.use(cors()); // Allow cross-origin requests
-app.use(express.json()); // Middleware to parse JSON request bodies
+app.use(cors()); 
+app.use(express.json());
 
-// Route to retrieve all stores from the database
+// Route to retrieve all stores
 app.get('/', async (req, res) => {
     try {
-        const stores = await model.getAllStores(); // Fetch all stores
-        res.status(200).send(stores); // Send the list of stores back to the client
+        const stores = await model.getAllStores();
+        res.status(200).json(stores);
     } catch (error) {
-        console.error('Error retrieving stores:', error); // Log the error
-        res.status(500).send('Internal Server Error'); // Send error message
+        console.error('Error retrieving stores:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
+// Endpoint to fetch available variables (so frontend can dynamically load them)
+app.get('/available-variables', async (req, res) => {
+    try {
+        const variables = await model.getAvailableVariables();
+        res.status(200).json(variables);
+    } catch (error) {
+        console.error('Error fetching available variables:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
-
+// Endpoint to fetch pie chart data
 app.get('/chart-data', async (req, res) => {
     const { district, variable } = req.query;
-    console.log("Received request for chart data:", { district, variable }); // Log received parameters
+    console.log("Received request for chart data:", { district, variable });
 
     try {
         const chartData = await model.getChartData(district, variable);
-        res.json(chartData); // Safely serialize the response
+        res.json(chartData);
     } catch (error) {
         console.error('Error in /chart-data:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
 
 // Endpoint to fetch diverging bar chart data
 app.get('/diverging-bar-data', async (req, res) => {
@@ -54,20 +61,11 @@ app.get('/diverging-bar-data', async (req, res) => {
         res.status(200).json(data);
     } catch (error) {
         console.error('Error in /diverging-bar-data:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-
-
-
-
-
 // Start the server
-const server = async () => {
-    app.listen(PORT, () => {
-        console.log(`Server is running on port: ${PORT}`); // Log a message when the server starts
-    });
-}
-
-server(); // Run the server
+app.listen(PORT, () => {
+    console.log(`Server is running on port: ${PORT}`);
+});
