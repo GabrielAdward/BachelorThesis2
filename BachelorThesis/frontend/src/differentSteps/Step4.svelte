@@ -16,6 +16,13 @@
     { label: "Num Employees", value: "numEmployees" },
     { label: "Num Dept Stores", value: "numDeptStores" },
   ];
+
+  const districts = [
+    { label: "All", value: "All" },
+    { label: "Oster", value: "Oster" },
+    { label: "Vaster", value: "Vaster" },
+    { label: "Ingen", value: "Ingen" },
+  ];
 </script>
 
 <div class="step-content">
@@ -54,9 +61,21 @@
         </select>
       </div>
     </div>
+  {:else if selectedOption === 2}
+    <!-- Pie Chart Configuration -->
+    <div>
+      <div class="mb-4">
+        <label for="district" class="block mb-1 font-medium">Select District:</label>
+        <select id="district" bind:value={district} class="w-full p-2 border">
+          {#each districts as district}
+            <option value={district.value}>{district.label}</option>
+          {/each}
+        </select>
+      </div>
+    </div>
   {:else}
     <p class="text-gray-500 mt-4">
-      Please select the <strong>Diverging Bar</strong> tool in Step 3 to configure and view the chart.
+      Please select a visualization tool in Step 3 to configure and view the chart.
     </p>
   {/if}
 </div>
