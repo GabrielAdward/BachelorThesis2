@@ -1,12 +1,9 @@
 <script>
-  import { onMount, tick } from "svelte";
-  import PieChart from "../components/charts/PieChart.svelte";
   import DivergingBar from "../components/charts/DivBar.svelte";
 
   export let district = "All";
   export let economicStat = "revenue";
-
-  let toolStep = 1; // Track which tool is being displayed
+  export let storeType = "All";
 
   const districts = [
     { label: "All", value: "All" },
@@ -28,87 +25,53 @@
     { label: "Num Dept Stores", value: "numDeptStores" },
   ];
 
-  // Navigate between the tools
-  const handleNext = async () => {
-    if (toolStep < 2) {
-      toolStep++;
-      await tick(); // Ensure UI updates before fetching
-    }
-  };
-
-  const handlePrev = async () => {
-    if (toolStep > 1) {
-      toolStep--;
-      await tick(); // Ensure UI updates before fetching
-    }
-  };
+  const storeTypes = [
+    "All", "Clothes", "Book Store", "Laundry Store", "Art", "Medicin"
+  ];
 </script>
 
 <div class="step-content">
-  <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 4: Configure and View Charts</h2>
-  <p class="text-center text-gray-700 mb-4">Tool {toolStep} / 2</p>
+  <h2 class="text-lg md:text-xl mb-2 md:mb-4">Step 4: View Diverging Bar Chart</h2>
+  <p class="text-center text-gray-700 mb-4">Analyze economic metrics by district and store type.</p>
 
-  <!-- PIE CHART -->
-  {#if toolStep === 1}
-    <div class="chart-container">
-      <h3 class="font-bold text-center">Pie Chart</h3>
+  <div class="selection-container">
+    <div>
       <label for="district" class="block font-medium text-center">Select District:</label>
       <select id="district" bind:value={district} class="dropdown">
         {#each districts as d}
           <option value={d.value}>{d.label}</option>
         {/each}
       </select>
-      <PieChart {district} variable="typeOfStore" />
     </div>
-  {/if}
 
-  <!-- DIVERGING BAR CHART -->
-  {#if toolStep === 2}
-    <div class="chart-container">
-      <h3 class="font-bold text-center">Diverging Bar Chart</h3>
-
-      <div class="selection-container">
-        <div>
-          <label for="district" class="block font-medium text-center">Select District:</label>
-          <select id="district" bind:value={district} class="dropdown">
-            {#each districts as d}
-              <option value={d.value}>{d.label}</option>
-            {/each}
-          </select>
-        </div>
-
-        <div>
-          <label for="economicStat" class="block font-medium text-center">Select Economic Variable:</label>
-          <select id="economicStat" bind:value={economicStat} class="dropdown">
-            {#each economicOptions as option}
-              <option value={option.value}>{option.label}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-
-      <DivergingBar {district} {economicStat} />
+    <div>
+      <label for="storeType" class="block font-medium text-center">Select Store Type:</label>
+      <select id="storeType" bind:value={storeType} class="dropdown">
+        {#each storeTypes as type}
+          <option value={type}>{type}</option>
+        {/each}
+      </select>
     </div>
-  {/if}
 
-  <!-- Navigation -->
-  <div class="button-group">
-    {#if toolStep > 1}
-      <button class="button back" on:click={handlePrev}>Back</button>
-    {/if}
-    {#if toolStep < 2}
-      <button class="button next" on:click={handleNext}>Next</button>
-    {/if}
+    <div>
+      <label for="economicStat" class="block font-medium text-center">Select Economic Variable:</label>
+      <select id="economicStat" bind:value={economicStat} class="dropdown">
+        {#each economicOptions as option}
+          <option value={option.value}>{option.label}</option>
+        {/each}
+      </select>
+    </div>
   </div>
+
+  <DivergingBar {district} {storeType} {economicStat} />
 </div>
 
 <style>
-  .chart-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 80%;
+  .step-content {
+    width: 100%;
+    max-width: 900px;
     margin: auto;
+    text-align: center;
   }
 
   .selection-container {
@@ -116,36 +79,13 @@
     justify-content: center;
     gap: 20px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
   }
 
   .dropdown {
-    width: 200px;
     padding: 10px;
-    border: 1px solid #ccc;
     border-radius: 5px;
-    text-align: center;
-  }
-
-  .button-group {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-  }
-
-  .button {
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    margin: 0 10px;
-  }
-
-  .back {
-    background-color: gray;
-    color: white;
-  }
-
-  .next {
-    background-color: blue;
-    color: white;
+    border: 1px solid #ccc;
+    width: 200px;
   }
 </style>

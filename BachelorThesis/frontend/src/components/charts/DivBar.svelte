@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import * as d3 from "d3";
 
   export let district = "All";
@@ -9,8 +9,10 @@
 
   let chartData = [];
   const margin = { top: 30, right: 60, bottom: 10, left: 100 };
-  const width = 1000; // Adjust width as needed
+  const width = 1000;
   let height = 0;
+
+  let prevDistrict, prevStoreType, prevEconomicStat;
 
   const fetchChartData = async () => {
     try {
@@ -19,11 +21,10 @@
       );
       const rawData = await response.json();
 
-      // Sort and map data
       chartData = d3.sort(rawData, (a, b) => d3.ascending(a.value, b.value))
-        .map((d) => ({
+        .map(d => ({
           ...d,
-          value: d.value, // Use actual values for diverging bar
+          value: d.value,
         }));
 
       renderChart();
@@ -36,77 +37,76 @@
     const svgContainer = d3.select("#diverging-bar-chart");
     svgContainer.selectAll("*").remove();
 
-    // Calculate dynamic chart height based on data
     const barHeight = 25;
-    height =
-      Math.ceil((chartData.length + 0.1) * barHeight) + margin.top + margin.bottom;
+    height = Math.ceil((chartData.length + 0.1) * barHeight) + margin.top + margin.bottom;
 
-    // Scales
-    const x = d3
-      .scaleLinear()
-      .domain(d3.extent(chartData, (d) => d.value)) // Auto-fit data range
+    const x = d3.scaleLinear()
+      .domain(d3.extent(chartData, d => d.value))
       .range([margin.left, width - margin.right]);
 
-    const y = d3
-      .scaleBand()
-      .domain(chartData.map((d) => d.label))
+    const y = d3.scaleBand()
+      .domain(chartData.map(d => d.label))
       .range([margin.top, height - margin.bottom])
       .padding(barHeightMultiplier);
 
     const format = d3.format("+.1f");
 
-    // Create SVG
     const svg = svgContainer
       .attr("viewBox", `0 0 ${width} ${height}`)
       .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
 
-    // Bars
-    svg
-      .append("g")
+    svg.append("g")
       .selectAll("rect")
       .data(chartData)
       .join("rect")
-      .attr("fill", (d) => (d.value > 0 ? "green" : "red"))
-      .attr("x", (d) => x(Math.min(0, d.value)))
-      .attr("y", (d) => y(d.label))
-      .attr("width", (d) => Math.abs(x(d.value) - x(0)))
+      .attr("fill", d => d.value > 0 ? "green" : "red")
+      .attr("x", d => x(Math.min(0, d.value)))
+      .attr("y", d => y(d.label))
+      .attr("width", d => Math.abs(x(d.value) - x(0)))
       .attr("height", y.bandwidth());
 
-    // Value labels
-    svg
-      .append("g")
+    svg.append("g")
       .selectAll("text")
       .data(chartData)
       .join("text")
-      .attr("text-anchor", (d) => (d.value < 0 ? "end" : "start"))
-      .attr("x", (d) => x(d.value) + Math.sign(d.value - 0) * 4)
-      .attr("y", (d) => y(d.label) + y.bandwidth() / 2)
+      .attr("text-anchor", d => d.value < 0 ? "end" : "start")
+      .attr("x", d => x(d.value) + Math.sign(d.value - 0) * 4)
+      .attr("y", d => y(d.label) + y.bandwidth() / 2)
       .attr("dy", "0.35em")
-      .text((d) => format(d.value));
+      .text(d => format(d.value));
 
-    // X-axis and grid
-    svg
-      .append("g")
+    svg.append("g")
       .attr("transform", `translate(0,${margin.top})`)
       .call(d3.axisTop(x).ticks(width / 80))
-      .call((g) =>
-        g
-          .selectAll(".tick line")
-          .clone()
-          .attr("y2", height - margin.top - margin.bottom)
-          .attr("stroke-opacity", 0.1)
-      )
-      .call((g) => g.select(".domain").remove());
+      .call(g => g.selectAll(".tick line")
+        .clone()
+        .attr("y2", height - margin.top - margin.bottom)
+        .attr("stroke-opacity", 0.1))
+      .call(g => g.select(".domain").remove());
 
-    // Y-axis
-    svg
-      .append("g")
+    svg.append("g")
       .attr("transform", `translate(${x(0)},0)`)
       .call(d3.axisLeft(y).tickSize(0).tickPadding(6));
   };
 
   onMount(() => {
     fetchChartData();
+    prevDistrict = district;
+    prevStoreType = storeType;
+    prevEconomicStat = economicStat;
+  });
+
+  afterUpdate(() => {
+    if (
+      prevDistrict !== district ||
+      prevStoreType !== storeType ||
+      prevEconomicStat !== economicStat
+    ) {
+      fetchChartData();
+      prevDistrict = district;
+      prevStoreType = storeType;
+      prevEconomicStat = economicStat;
+    }
   });
 </script>
 

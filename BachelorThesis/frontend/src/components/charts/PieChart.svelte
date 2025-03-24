@@ -8,12 +8,15 @@
   let chartData = [];
   let colorScale;
 
+  let prevDistrict, prevVariable;
+
   const fetchChartData = async () => {
     try {
       const response = await fetch(`http://localhost:8080/chart-data?district=${district}&variable=${variable}`);
       chartData = await response.json();
 
-      colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(chartData.map(d => d.label));
+      colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+        .domain(chartData.map(d => d.label));
 
       renderChart();
     } catch (error) {
@@ -60,8 +63,19 @@
       .style("font-size", "10px");
   };
 
-  onMount(fetchChartData);
-  afterUpdate(fetchChartData); // Ensures updates when district changes
+  onMount(() => {
+    fetchChartData();
+    prevDistrict = district;
+    prevVariable = variable;
+  });
+
+  afterUpdate(() => {
+    if (prevDistrict !== district || prevVariable !== variable) {
+      fetchChartData();
+      prevDistrict = district;
+      prevVariable = variable;
+    }
+  });
 </script>
 
 <svg id="pie-chart"></svg>
