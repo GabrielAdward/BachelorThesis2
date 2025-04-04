@@ -5,37 +5,76 @@
   import Step4 from "../differentSteps/Step4.svelte";
   import Step5 from "../differentSteps/Step5.svelte";
 
-  // Shared data across steps
-  let question = ""; // Step 1: User input question
-  let storeData = []; // Step 2: Display data
-  let districts = []; // Step 2: Available districts for selection
-  let selectedDistrict = "Show All"; // Step 2: Selected district
-  let district = "All"; // Step 4: Selected district for visualization
-  let storeType = "All"; // Step 4: Selected store type
-  let economicStat = "revenue"; // Step 4: Selected economic variable
-  let selectedOption = null; // Previously used for selecting visualization, now redundant
-  let currentTool = 1; // Tracks Pie Chart and Diverging Bar Chart selection in Step 4
-  let pieVariable = "typeOfStore"; // default
-
-  let currentStep = 1; // Tracks current form step
-  let errors = {}; // Placeholder for validation errors
+  let question = "";
+  let storeData = [];
+  let districts = [];
+  let selectedDistrict = "Show All";
+  let district = "All";
+  let storeType = "All";
+  let economicStat = "revenue";
+  let currentTool = 1;
+  let pieVariable = "typeOfStore";
+  let currentStep = 1;
+  let errors = {};
+  let conclusion = "";
+  let attempts = [];
 
   const handleNextStep = () => {
-    if (currentStep < 5) {
-      currentStep++;
-    }
+    if (currentStep < 5) currentStep++;
   };
 
   const handlePrevStep = () => {
-    if (currentStep > 1) {
-      currentStep--;
-    }
+    if (currentStep > 1) currentStep--;
+  };
+
+  const handleLoop = () => {
+    const timestamp = new Date();
+    attempts.push({
+      question,
+      pieVariable,
+      district,
+      storeType,
+      economicStat,
+      conclusion,
+      timestamp,
+    });
+    currentStep = 1;
+    question = "";
+    storeType = "All";
+    economicStat = "revenue";
+    pieVariable = "typeOfStore";
+    conclusion = "";
+  };
+
+  const formatDate = (date) => format(date, "Pp");
+
+  const expandAttempt = (attempt) => {
+    currentStep = 5;
+    question = attempt.question;
+    pieVariable = attempt.pieVariable;
+    district = attempt.district;
+    storeType = attempt.storeType;
+    economicStat = attempt.economicStat;
+    conclusion = attempt.conclusion;
   };
 </script>
 
+<!-- 💡 Previous Attempts above form -->
+<div class="attempts-container">
+  <h3>Previous Attempts</h3>
+  <div class="attempts-grid">
+    {#each attempts as a}
+      <div class="attempt-box" on:click={() => expandAttempt(a)}>
+        <strong>{a.question}</strong>
+        <div class="text-sm text-gray-500">{formatDate(a.timestamp)}</div>
+      </div>
+    {/each}
+  </div>
+</div>
+
+<!-- 🧾 Form Component -->
 <div class="form-container flex items-center justify-center">
   <div class="form-box p-6 md:p-10 rounded-lg shadow-md">
-    <!-- Step Indicator -->
     <ul class="step-indicator flex justify-between mb-6 md:mb-10">
       {#each [1, 2, 3, 4, 5] as step}
         <li
@@ -58,20 +97,13 @@
     {:else if currentStep === 2}
       <Step2 bind:storeData={storeData} bind:districts={districts} bind:selectedDistrict={selectedDistrict} />
     {:else if currentStep === 3}
-    <Step3 bind:district={district} bind:pieVariable={pieVariable} />
+      <Step3 bind:district={district} bind:variable={pieVariable} />
     {:else if currentStep === 4}
       <Step4 bind:district={district} bind:storeType={storeType} bind:economicStat={economicStat} bind:currentTool={currentTool} />
     {:else if currentStep === 5}
-    <Step5
-    {district}
-    {storeType}
-    {economicStat}
-    {question}
-    {pieVariable}
-  />
-      {/if}
+      <Step5 {district} {storeType} {economicStat} {question} variable={pieVariable} bind:conclusion />
+    {/if}
 
-    <!-- Navigation Buttons -->
     <div class="button-group mt-6 flex justify-end gap-3">
       {#if currentStep > 1}
         <button class="bg-gray-500 text-white py-2 px-4 rounded" on:click={handlePrevStep}>Back</button>
@@ -84,6 +116,29 @@
 </div>
 
 <style>
+  .attempts-container {
+    margin: 20px auto 10px auto;
+    max-width: 1200px;
+    padding: 10px;
+    text-align: left;
+  }
+
+  .attempts-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+  }
+
+  .attempt-box {
+    background: white;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    width: fit-content;
+  }
+
   .form-container {
     display: flex;
     align-items: center;
@@ -91,14 +146,15 @@
     min-height: 100vh;
     padding: 20px;
   }
+
   .form-box {
-  width: 100%;
-  max-width: 1200px; /* ✅ Wider form */
-  background-color: #f0f4f8;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
+    width: 100%;
+    max-width: 1200px;
+    background-color: #f0f4f8;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
 
   .step-indicator {
     display: flex;
@@ -106,6 +162,7 @@
     gap: 5px;
     flex-wrap: wrap;
   }
+
   .button-group {
     display: flex;
     justify-content: flex-end;

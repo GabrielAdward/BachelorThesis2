@@ -2,58 +2,43 @@
   import PieChart from "../components/charts/PieChart.svelte";
   import DivergingBar from "../components/charts/DivBar.svelte";
 
-  export let question = "";
   export let district = "All";
   export let storeType = "All";
   export let economicStat = "revenue";
   export let pieVariable = "typeOfStore";
+  export let question = "";
 
-  const pieLabels = {
-    typeOfStore: "Store Category",
-    sizeOfStore: "Store Size"
-  };
-
-  const economicLabels = {
-    revenue: "Revenue",
-    yearlyResult: "Yearly Result",
-    resultAfterFinancialNet: "Result After Financial Net",
-    totalAssets: "Total Assets",
-    profitMargin: "Profit Margin",
-    solvency: "Solvency",
-    cashFlow: "Cash Flow",
-    grossProfitMargin: "Gross Profit Margin",
-    numEmployees: "Number of Employees",
-    numDeptStores: "Number of Department Stores"
-  };
+  let conclusion = "";
 </script>
 
 <div class="step-content">
   <h2 class="text-lg md:text-xl mb-4">Step 5: Final Visualization</h2>
 
-  <p class="italic text-gray-600 mb-6">
-    <strong>Your Question:</strong> {question}
-  </p>
+  <div class="summary-info mb-6">
+    <p><strong>Question:</strong> {question}</p>
+  </div>
 
-  <!-- Pie Chart Section -->
-  <div class="chart-section">
-    <h3 class="text-md font-semibold mb-2">
-      Pie Chart – Grouped by: <span class="text-blue-600">{pieLabels[pieVariable]}</span>
-    </h3>
-    <p class="text-sm text-gray-500 mb-3">
-      District: <strong>{district}</strong>
-    </p>
+  <div class="chart-section mb-6 border-b pb-6">
+    <h3 class="text-md font-semibold mb-2">Pie Chart</h3>
+    <p class="text-sm text-gray-600 mb-2">District: {district} | Group by: {pieVariable}</p>
     <PieChart {district} variable={pieVariable} />
   </div>
 
-  <!-- Diverging Bar Chart Section -->
-  <div class="chart-section mt-6">
-    <h3 class="text-md font-semibold mb-2">
-      Diverging Bar – Showing: <span class="text-green-600">{economicLabels[economicStat]}</span>
-    </h3>
-    <p class="text-sm text-gray-500 mb-3">
-      District: <strong>{district}</strong> | Store Type: <strong>{storeType}</strong>
-    </p>
+  <div class="chart-section mb-6 border-b pb-6">
+    <h3 class="text-md font-semibold mb-2">Diverging Bar Chart</h3>
+    <p class="text-sm text-gray-600 mb-2">District: {district} | Store Type: {storeType} | Variable: {economicStat}</p>
     <DivergingBar {district} {storeType} {economicStat} />
+  </div>
+
+  <div class="conclusion-section">
+    <h3 class="text-md font-semibold mb-2">Conclusion</h3>
+    <textarea bind:value={conclusion} placeholder="Write your conclusion here..." rows="5" class="conclusion-box"></textarea>
+  </div>
+
+  <div class="button-group mt-6 flex justify-end gap-3">
+    <button class="bg-gray-500 text-white py-2 px-4 rounded" on:click={() => dispatch("back")}>Back</button>
+    <button class="bg-yellow-500 text-white py-2 px-4 rounded" on:click={() => dispatch("loop", { district, storeType, economicStat, pieVariable, conclusion, question })}>Loop</button>
+    <button class="bg-green-600 text-white py-2 px-4 rounded">Save</button>
   </div>
 </div>
 
@@ -68,11 +53,12 @@
     margin-bottom: 30px;
   }
 
-  h3 span {
-    font-weight: 600;
-  }
-
-  p {
-    margin-bottom: 0.5rem;
+  .conclusion-box {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    resize: vertical;
+    font-size: 14px;
   }
 </style>
