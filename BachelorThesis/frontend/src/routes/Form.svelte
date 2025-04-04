@@ -85,13 +85,14 @@
     padding: 20px;
   }
   .form-box {
-    width: 100%;
-    max-width: 800px;
-    background-color: #f0f4f8;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  }
+  width: 100%;
+  max-width: 1200px; /* ✅ Wider form */
+  background-color: #f0f4f8;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
   .step-indicator {
     display: flex;
     justify-content: space-between;

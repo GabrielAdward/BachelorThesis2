@@ -107,6 +107,34 @@ class StoreModel {
             throw new Error('Error fetching diverging bar data');
         }
     }
+
+
+    async getStoreTypesByDistrict(district) {
+        try {
+            let sql = `
+                SELECT typeOfStore AS type, COUNT(*) AS count 
+                FROM stores
+            `;
+            const params = [];
+    
+            if (district && district !== 'All') {
+                sql += ' WHERE district = ?';
+                params.push(district);
+            }
+    
+            sql += ' GROUP BY typeOfStore ORDER BY count DESC';
+    
+            const result = await this.pool.query(sql, params);
+            return result.map(row => ({
+                type: row.type || 'Unknown',
+                count: Number(row.count)
+            }));
+        } catch (error) {
+            console.error('Error fetching store types by district:', error);
+            throw new Error('Failed to fetch store types');
+        }
+    }
+    
     
 
     // Utility to sanitize BigInt fields

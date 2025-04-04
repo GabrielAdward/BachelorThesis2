@@ -1,15 +1,22 @@
 <script>
+  import { onMount } from "svelte";
   import DivergingBar from "../components/charts/DivBar.svelte";
 
   export let district = "All";
   export let economicStat = "revenue";
   export let storeType = "All";
+  let hideZero = false;
+
+  let storeTypes = [{ type: "All", count: 0 }];
 
   const districts = [
     { label: "All", value: "All" },
     { label: "Oster", value: "Oster" },
     { label: "Vaster", value: "Vaster" },
     { label: "Ingen", value: "Ingen" },
+    { label: "Tändsticksområdet", value: "Tändsticksområdet" },
+    { label: "Atollen", value: "Atollen" },
+    { label: "Resecentrum", value: "Resecentrum" }
   ];
 
   const economicOptions = [
@@ -22,12 +29,33 @@
     { label: "Cash Flow", value: "cashFlow" },
     { label: "Gross Profit Margin", value: "grossProfitMargin" },
     { label: "Num Employees", value: "numEmployees" },
-    { label: "Num Dept Stores", value: "numDeptStores" },
+    { label: "Num Dept Stores", value: "numDeptStores" }
   ];
 
-  const storeTypes = [
-    "All", "Clothes", "Book Store", "Laundry Store", "Art", "Medicin"
-  ];
+  const fetchStoreTypes = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/store-types?district=${district}`);
+      const data = await response.json();
+
+      // Add "All" as first option
+      storeTypes = [{ type: "All", count: 0 }, ...data];
+
+      // Reset storeType if current one doesn't exist in filtered list
+      const validTypes = storeTypes.map(t => t.type);
+      if (!validTypes.includes(storeType)) {
+        storeType = "All";
+      }
+    } catch (err) {
+      console.error("Failed to fetch store types:", err);
+    }
+  };
+
+  onMount(fetchStoreTypes);
+
+  // Reactive: refetch types when district changes
+  $: if (district !== undefined) {
+    fetchStoreTypes();
+  }
 </script>
 
 <div class="step-content">
@@ -47,8 +75,10 @@
     <div>
       <label for="storeType" class="block font-medium text-center">Select Store Type:</label>
       <select id="storeType" bind:value={storeType} class="dropdown">
-        {#each storeTypes as type}
-          <option value={type}>{type}</option>
+        {#each storeTypes as t}
+          <option value={t.type}>
+            {t.type === "All" ? "All" : `${t.type} (${t.count})`}
+          </option>
         {/each}
       </select>
     </div>
@@ -63,13 +93,20 @@
     </div>
   </div>
 
-  <DivergingBar {district} {storeType} {economicStat} />
+  <div class="toggle-container mb-4">
+    <label class="flex items-center justify-center gap-2 text-sm text-gray-700">
+      <input type="checkbox" bind:checked={hideZero} />
+      Hide stores with value 0
+    </label>
+  </div>
+
+  <DivergingBar {district} {storeType} {economicStat} {hideZero} />
 </div>
 
 <style>
   .step-content {
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
     margin: auto;
     text-align: center;
   }
@@ -86,6 +123,11 @@
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    width: 200px;
+    width: 220px;
+  }
+
+  .toggle-container input {
+    transform: scale(1.2);
+    margin-right: 6px;
   }
 </style>

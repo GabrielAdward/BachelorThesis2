@@ -65,6 +65,18 @@ app.get('/diverging-bar-data', async (req, res) => {
     }
 });
 
+app.get('/store-types', async (req, res) => {
+    const { district } = req.query;
+    try {
+        const data = await model.getStoreTypesByDistrict(district);
+        res.json(data);
+    } catch (error) {
+        console.error('Error in /store-types:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port: ${PORT}`);

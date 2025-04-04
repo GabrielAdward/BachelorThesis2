@@ -1,18 +1,19 @@
 <script>
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount } from "svelte";
   import * as d3 from "d3";
 
   export let district = "All";
   export let storeType = "All";
   export let economicStat = "revenue";
+  export let hideZero = false;
   export let barHeightMultiplier = 0.6;
 
   let chartData = [];
+  let hasData = false;
+
   const margin = { top: 30, right: 60, bottom: 10, left: 100 };
   const width = 1000;
   let height = 0;
-
-  let prevDistrict, prevStoreType, prevEconomicStat;
 
   const fetchChartData = async () => {
     try {
@@ -24,18 +25,27 @@
       chartData = d3.sort(rawData, (a, b) => d3.ascending(a.value, b.value))
         .map(d => ({
           ...d,
-          value: d.value,
+          value: d.value ?? 0
         }));
 
+      if (hideZero) {
+        chartData = chartData.filter(d => d.value !== 0);
+      }
+
+      hasData = chartData.length > 0;
       renderChart();
     } catch (error) {
       console.error("Error fetching chart data:", error);
+      chartData = [];
+      hasData = false;
     }
   };
 
   const renderChart = () => {
     const svgContainer = d3.select("#diverging-bar-chart");
     svgContainer.selectAll("*").remove();
+
+    if (!hasData) return;
 
     const barHeight = 25;
     height = Math.ceil((chartData.length + 0.1) * barHeight) + margin.top + margin.bottom;
@@ -89,32 +99,32 @@
       .call(d3.axisLeft(y).tickSize(0).tickPadding(6));
   };
 
-  onMount(() => {
-    fetchChartData();
-    prevDistrict = district;
-    prevStoreType = storeType;
-    prevEconomicStat = economicStat;
-  });
+  // Run on initial load
+  onMount(fetchChartData);
 
-  afterUpdate(() => {
-    if (
-      prevDistrict !== district ||
-      prevStoreType !== storeType ||
-      prevEconomicStat !== economicStat
-    ) {
-      fetchChartData();
-      prevDistrict = district;
-      prevStoreType = storeType;
-      prevEconomicStat = economicStat;
-    }
-  });
+  // Reactively run whenever filters change (including hideZero)
+  $: if (district !== undefined && storeType !== undefined && economicStat !== undefined && hideZero !== undefined) {
+    fetchChartData();
+  }
 </script>
 
-<svg id="diverging-bar-chart"></svg>
+{#if hasData}
+  <svg id="diverging-bar-chart"></svg>
+{:else}
+  <p class="no-data">No data available for this combination.</p>
+{/if}
 
 <style>
   #diverging-bar-chart {
     width: 100%;
     height: auto;
+  }
+
+  .no-data {
+    text-align: center;
+    font-size: 1rem;
+    margin-top: 30px;
+    color: #777;
+    font-style: italic;
   }
 </style>
