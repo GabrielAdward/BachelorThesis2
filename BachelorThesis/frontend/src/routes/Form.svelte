@@ -15,6 +15,7 @@
   let economicStat = "revenue"; // Step 4: Selected economic variable
   let selectedOption = null; // Previously used for selecting visualization, now redundant
   let currentTool = 1; // Tracks Pie Chart and Diverging Bar Chart selection in Step 4
+  let pieVariable = "typeOfStore"; // default
 
   let currentStep = 1; // Tracks current form step
   let errors = {}; // Placeholder for validation errors
@@ -57,12 +58,18 @@
     {:else if currentStep === 2}
       <Step2 bind:storeData={storeData} bind:districts={districts} bind:selectedDistrict={selectedDistrict} />
     {:else if currentStep === 3}
-      <Step3 />
+    <Step3 bind:district={district} bind:pieVariable={pieVariable} />
     {:else if currentStep === 4}
       <Step4 bind:district={district} bind:storeType={storeType} bind:economicStat={economicStat} bind:currentTool={currentTool} />
     {:else if currentStep === 5}
-      <Step5 {district} {storeType} {economicStat} />
-    {/if}
+    <Step5
+    {district}
+    {storeType}
+    {economicStat}
+    {question}
+    {pieVariable}
+  />
+      {/if}
 
     <!-- Navigation Buttons -->
     <div class="button-group mt-6 flex justify-end gap-3">

@@ -3,7 +3,9 @@
   import * as d3 from "d3";
 
   export let district = "All";
-  export let variable = "typeOfStore";
+export let storeType = "All";
+export let variable = "typeOfStore"; // still controls grouping
+
 
   let chartData = [];
   let colorScale;
@@ -13,7 +15,7 @@
 
   const fetchChartData = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/chart-data?district=${district}&variable=${variable}`);
+      const response = await fetch(`http://localhost:8080/chart-data?district=${district}&storeType=${storeType}&variable=${variable}`);
       chartData = await response.json();
 
       const allLabels = chartData.map(d => d.label);

@@ -11,7 +11,7 @@
   let chartData = [];
   let hasData = false;
 
-  const margin = { top: 30, right: 60, bottom: 10, left: 100 };
+  const margin = { top: 30, right: 150, bottom: 10, left: 150 };
   const width = 1000;
   let height = 0;
 
@@ -42,68 +42,115 @@
   };
 
   const renderChart = () => {
-    const svgContainer = d3.select("#diverging-bar-chart");
-    svgContainer.selectAll("*").remove();
+  const svgContainer = d3.select("#diverging-bar-chart");
+  svgContainer.selectAll("*").remove();
 
-    if (!hasData) return;
+  if (!hasData) return;
 
-    const barHeight = 25;
-    height = Math.ceil((chartData.length + 0.1) * barHeight) + margin.top + margin.bottom;
+  const barHeight = 25;
+  height = Math.ceil((chartData.length + 0.1) * barHeight) + margin.top + margin.bottom;
 
-    const x = d3.scaleLinear()
-      .domain(d3.extent(chartData, d => d.value))
-      .range([margin.left, width - margin.right]);
+  const x = d3.scaleLinear()
+    .domain(d3.extent(chartData, d => d.value))
+    .range([margin.left, width - margin.right]);
 
-    const y = d3.scaleBand()
-      .domain(chartData.map(d => d.label))
-      .range([margin.top, height - margin.bottom])
-      .padding(barHeightMultiplier);
+  const y = d3.scaleBand()
+    .domain(chartData.map(d => d.label))
+    .range([margin.top, height - margin.bottom])
+    .padding(barHeightMultiplier);
 
-    const format = d3.format("+.1f");
+  const format = d3.format("+.1f");
 
-    const svg = svgContainer
-      .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+  const svg = svgContainer
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
 
-    svg.append("g")
-      .selectAll("rect")
-      .data(chartData)
-      .join("rect")
-      .attr("fill", d => d.value > 0 ? "green" : "red")
-      .attr("x", d => x(Math.min(0, d.value)))
-      .attr("y", d => y(d.label))
-      .attr("width", d => Math.abs(x(d.value) - x(0)))
-      .attr("height", y.bandwidth());
+  // Draw bars
+  svg.append("g")
+    .selectAll("rect")
+    .data(chartData)
+    .join("rect")
+    .attr("fill", d => d.value > 0 ? "green" : "red")
+    .attr("x", d => x(Math.min(0, d.value)))
+    .attr("y", d => y(d.label))
+    .attr("width", d => Math.abs(x(d.value) - x(0)))
+    .attr("height", y.bandwidth());
 
-    svg.append("g")
-      .selectAll("text")
-      .data(chartData)
-      .join("text")
-      .attr("text-anchor", d => d.value < 0 ? "end" : "start")
-      .attr("x", d => x(d.value) + Math.sign(d.value - 0) * 4)
-      .attr("y", d => y(d.label) + y.bandwidth() / 2)
-      .attr("dy", "0.35em")
-      .text(d => format(d.value));
+  // Draw numeric value labels near the bar edge
+  svg.append("g")
+    .selectAll("text.value")
+    .data(chartData)
+    .join("text")
+    .attr("class", "value")
+    .attr("text-anchor", d => d.value < 0 ? "end" : "start")
+    .attr("x", d => x(d.value) + Math.sign(d.value - 0) * 4)
+    .attr("y", d => y(d.label) + y.bandwidth() / 2)
+    .attr("dy", "0.35em")
+    .text(d => format(d.value));
 
-    svg.append("g")
-      .attr("transform", `translate(0,${margin.top})`)
-      .call(d3.axisTop(x).ticks(width / 80))
-      .call(g => g.selectAll(".tick line")
-        .clone()
-        .attr("y2", height - margin.top - margin.bottom)
-        .attr("stroke-opacity", 0.1))
-      .call(g => g.select(".domain").remove());
+// 🔴 NEGATIVE
+svg.append("g")
+  .selectAll("text.negative-label")
+  .data(chartData.filter(d => d.value < 0))
+  .join("text")
+  .attr("class", "negative-label")
+  .attr("text-anchor", "start")
+  .attr("x", x(0) + 6)
+  .attr("y", d => y(d.label) + y.bandwidth() / 2)
+  .attr("dy", "0.35em")
+  .text(d => d.label);
 
-    svg.append("g")
-      .attr("transform", `translate(${x(0)},0)`)
-      .call(d3.axisLeft(y).tickSize(0).tickPadding(6));
-  };
+// 🟢 POSITIVE
+svg.append("g")
+  .selectAll("text.positive-label")
+  .data(chartData.filter(d => d.value > 0))
+  .join("text")
+  .attr("class", "positive-label")
+  .attr("text-anchor", "end")
+  .attr("x", x(0) - 6)
+  .attr("y", d => y(d.label) + y.bandwidth() / 2)
+  .attr("dy", "0.35em")
+  .text(d => d.label);
 
-  // Run on initial load
+// ⚪ ZERO
+svg.append("g")
+  .selectAll("text.zero-label")
+  .data(chartData.filter(d => d.value === 0))
+  .join("text")
+  .attr("class", "zero-label")
+  .attr("text-anchor", "start")
+  .attr("x", x(0) + 60) // ⬅ move further to the right
+  .attr("y", d => y(d.label) + y.bandwidth() / 2)
+  .attr("dy", "0.35em")
+  .text(d => d.label);
+
+
+  // Top axis
+  svg.append("g")
+    .attr("transform", `translate(0,${margin.top})`)
+    .call(d3.axisTop(x).ticks(width / 80))
+    .call(g => g.selectAll(".tick line")
+      .clone()
+      .attr("y2", height - margin.top - margin.bottom)
+      .attr("stroke-opacity", 0.1))
+    .call(g => g.select(".domain").remove());
+
+  // Vertical zero line
+  svg.append("line")
+    .attr("x1", x(0))
+    .attr("x2", x(0))
+    .attr("y1", margin.top)
+    .attr("y2", height - margin.bottom)
+    .attr("stroke", "#333")
+    .attr("stroke-width", 1.5)
+    .attr("stroke-dasharray", "3,2");
+};
+
+
   onMount(fetchChartData);
 
-  // Reactively run whenever filters change (including hideZero)
-  $: if (district !== undefined && storeType !== undefined && economicStat !== undefined && hideZero !== undefined) {
+  // Reactively reload on prop changes
+  $: if (district && storeType && economicStat && hideZero !== undefined) {
     fetchChartData();
   }
 </script>

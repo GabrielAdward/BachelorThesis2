@@ -1,8 +1,8 @@
 <script>
   import PieChart from "../components/charts/PieChart.svelte";
 
-  let district = "All";
-  let variable = "typeOfStore"; // default pie chart variable
+  export let district = "All";
+  export let pieVariable = "typeOfStore"; // ✅ Bind from Form.svelte
 
   const districts = [
     { label: "All", value: "All" },
@@ -12,15 +12,13 @@
     { label: "Tändsticksområdet", value: "Tändsticksområdet" },
     { label: "Atollen", value: "Atollen" },
     { label: "Resecentrum", value: "Resecentrum" }
-
   ];
 
   const pieOptions = [
     { label: "Store Category", value: "typeOfStore" },
-    { label: "Store Size", value: "sizeOfStore" },
+    { label: "Store Size", value: "sizeOfStore" }
   ];
 </script>
-
 
 <div class="step-content">
   <h2 class="text-xl mb-2">Step 3: View Pie Chart</h2>
@@ -38,7 +36,7 @@
 
     <div>
       <label for="variable" class="block font-medium text-center">Group by:</label>
-      <select id="variable" bind:value={variable} class="dropdown">
+      <select id="variable" bind:value={pieVariable} class="dropdown">
         {#each pieOptions as option}
           <option value={option.value}>{option.label}</option>
         {/each}
@@ -47,9 +45,10 @@
   </div>
 
   <div class="chart-wrapper">
-    <PieChart {district} {variable} />
+    <PieChart {district} variable={pieVariable} />
   </div>
 </div>
+
 
 
 <style>
