@@ -134,6 +134,53 @@ class StoreModel {
             throw new Error('Failed to fetch store types');
         }
     }
+
+
+    async saveChartAttempt({ userId = 1, columnsUsed, chartType, dataSummary, title, conclusion }) {
+        try {
+          const sql = `
+            INSERT INTO SavedCharts (userId, columnsUsed, chartType, dataSummary, title, conclusion)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `;
+          await this.pool.query(sql, [
+            userId,
+            JSON.stringify(columnsUsed),
+            chartType,
+            dataSummary,
+            title,
+            conclusion,
+          ]);
+          return { success: true };
+        } catch (error) {
+          console.error('Error saving chart attempt:', error);
+          throw new Error('Failed to save chart attempt');
+        }
+      }
+      
+    
+    
+    async getSavedCharts() {
+        try {
+            const sql = 'SELECT * FROM SavedCharts ORDER BY createdAt DESC';
+            const result = await this.pool.query(sql);
+            return result.map(this._sanitizeBigInt);
+        } catch (error) {
+            console.error('Error fetching saved charts:', error);
+            throw new Error('Failed to retrieve saved charts');
+        }
+    }
+    
+    async getChartById(id) {
+        try {
+            const sql = 'SELECT * FROM SavedCharts WHERE id = ?';
+            const [result] = await this.pool.query(sql, [id]);
+            return this._sanitizeBigInt(result);
+        } catch (error) {
+            console.error('Error fetching chart by ID:', error);
+            throw new Error('Failed to retrieve chart by ID');
+        }
+    }
+    
     
     
 

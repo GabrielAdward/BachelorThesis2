@@ -12,69 +12,49 @@
   let district = "All";
   let storeType = "All";
   let economicStat = "revenue";
-  let currentTool = 1;
   let pieVariable = "typeOfStore";
+  let currentTool = 1;
   let currentStep = 1;
-  let errors = {};
-  let conclusion = "";
-  let attempts = [];
+  let saving = false;
+  let successMessage = "";
 
-  const handleNextStep = () => {
-    if (currentStep < 5) currentStep++;
-  };
+  let chartTitle = "";
+let conclusion = "";
 
-  const handlePrevStep = () => {
-    if (currentStep > 1) currentStep--;
-  };
-
-  const handleLoop = () => {
-    const timestamp = new Date();
-    attempts.push({
-      question,
-      pieVariable,
+  
+const saveAttempt = async () => {
+  const payload = {
+    userId: 1,
+    chartType: "mixed",
+    columnsUsed: {
       district,
       storeType,
       economicStat,
-      conclusion,
-      timestamp,
-    });
-    currentStep = 1;
-    question = "";
-    storeType = "All";
-    economicStat = "revenue";
-    pieVariable = "typeOfStore";
-    conclusion = "";
+      variable: pieVariable
+    },
+    title: chartTitle,
+    conclusion: conclusion,
+    dataSummary: null
   };
 
-  const formatDate = (date) => format(date, "Pp");
+  const res = await fetch("http://localhost:8080/save-chart", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-  const expandAttempt = (attempt) => {
-    currentStep = 5;
-    question = attempt.question;
-    pieVariable = attempt.pieVariable;
-    district = attempt.district;
-    storeType = attempt.storeType;
-    economicStat = attempt.economicStat;
-    conclusion = attempt.conclusion;
-  };
+  if (res.ok) {
+    alert("Saved!");
+  } else {
+    alert("Error saving.");
+  }
+};
+
 </script>
 
-<!-- 💡 Previous Attempts above form -->
-<div class="attempts-container">
-  <h3>Previous Attempts</h3>
-  <div class="attempts-grid">
-    {#each attempts as a}
-      <div class="attempt-box" on:click={() => expandAttempt(a)}>
-        <strong>{a.question}</strong>
-        <div class="text-sm text-gray-500">{formatDate(a.timestamp)}</div>
-      </div>
-    {/each}
-  </div>
-</div>
-
-<!-- 🧾 Form Component -->
 <div class="form-container flex items-center justify-center">
   <div class="form-box p-6 md:p-10 rounded-lg shadow-md">
+    <!-- Step Progress -->
     <ul class="step-indicator flex justify-between mb-6 md:mb-10">
       {#each [1, 2, 3, 4, 5] as step}
         <li
@@ -91,7 +71,7 @@
       {/each}
     </ul>
 
-    <!-- Step Content -->
+    <!-- Dynamic Step Content -->
     {#if currentStep === 1}
       <Step1 bind:question={question} />
     {:else if currentStep === 2}
@@ -101,44 +81,42 @@
     {:else if currentStep === 4}
       <Step4 bind:district={district} bind:storeType={storeType} bind:economicStat={economicStat} bind:currentTool={currentTool} />
     {:else if currentStep === 5}
-      <Step5 {district} {storeType} {economicStat} {question} variable={pieVariable} bind:conclusion />
-    {/if}
+    <Step5
+      {district}
+      {storeType}
+      {economicStat}
+      {question}
+      variable={pieVariable}
+      bind:chartTitle
+      bind:conclusion
+    />
+  {/if}
+  
 
+    <!-- Navigation & Save Buttons -->
     <div class="button-group mt-6 flex justify-end gap-3">
       {#if currentStep > 1}
-        <button class="bg-gray-500 text-white py-2 px-4 rounded" on:click={handlePrevStep}>Back</button>
+        <button class="bg-gray-500 text-white py-2 px-4 rounded" on:click={() => currentStep--}>Back</button>
       {/if}
+
       {#if currentStep < 5}
-        <button class="bg-blue-500 text-white py-2 px-4 rounded" on:click={handleNextStep}>Next</button>
+        <button class="bg-blue-500 text-white py-2 px-4 rounded" on:click={() => currentStep++}>Next</button>
+      {/if}
+
+      {#if currentStep === 5}
+        <button class="bg-green-600 text-white py-2 px-4 rounded" on:click={saveAttempt} disabled={saving}>
+          {saving ? 'Saving...' : 'Save Attempt'}
+        </button>
       {/if}
     </div>
+
+    {#if successMessage}
+      <p class="text-center mt-3 text-sm text-green-600">{successMessage}</p>
+    {/if}
   </div>
 </div>
 
 <style>
-  .attempts-container {
-    margin: 20px auto 10px auto;
-    max-width: 1200px;
-    padding: 10px;
-    text-align: left;
-  }
-
-  .attempts-grid {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 5px;
-  }
-
-  .attempt-box {
-    background: white;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    width: fit-content;
-  }
-
   .form-container {
     display: flex;
     align-items: center;

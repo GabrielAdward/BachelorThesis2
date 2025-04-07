@@ -77,6 +77,35 @@ app.get('/store-types', async (req, res) => {
 });
 
 
+app.post('/save-chart', async (req, res) => {
+    try {
+        const result = await model.saveChartAttempt(req.body);
+        res.status(201).json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/saved-charts', async (req, res) => {
+    try {
+        const charts = await model.getSavedCharts();
+        res.json(charts);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/chart/:id', async (req, res) => {
+    try {
+        const chart = await model.getChartById(req.params.id);
+        res.json(chart);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port: ${PORT}`);

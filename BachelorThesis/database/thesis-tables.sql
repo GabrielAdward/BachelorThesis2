@@ -36,6 +36,7 @@ CREATE TABLE SavedCharts (
     columnsUsed JSON,
     chartType VARCHAR(50),
     dataSummary TEXT,
+    conclusion TEXT,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
